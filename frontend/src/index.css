@@ -1,0 +1,322 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #8A9A7F;
+    --color-primary-dark: #6F7F65;
+    --color-primary-light: #A7B69F;
+    --color-primary-soft: #C5D0BE;
+    --color-cream: #FCF4E7;
+    --color-cream-dark: #F0E5D1;
+    --color-cream-soft: #F8F1E6;
+    --color-background: #FAF9F6;
+    --color-surface: #FFFFFF;
+    --color-surface-alt: #F7F5F0;
+    --color-text: #3D4A3A;
+    --color-text-light: #6B7568;
+    --color-text-muted: #8A9385;
+    --color-success: #7A9A6A;
+    --color-warning: #C4A35A;
+    --color-error: #B87A6E;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #A7B69F 0%, #8A9A7F 100%);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(138, 154, 127, 0.4);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #8A9A7F;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid #A7B69F;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: rgba(138, 154, 127, 0.1);
+}
+
+
+/* ===== MOBILE RESPONSIVENESS ===== */
+
+/* Small devices (phones, 640px and down) */
+@media (max-width: 640px) {
+  /* General */
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  
+  /* Headers */
+  h1 {
+    font-size: 1.6rem !important;
+  }
+  h2 {
+    font-size: 1.2rem !important;
+  }
+  h3 {
+    font-size: 1rem !important;
+  }
+  
+  /* Grids */
+  .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Flex */
+  .flex-row {
+    flex-direction: column !important;
+  }
+  
+  .flex-wrap {
+    justify-content: center !important;
+  }
+  
+  /* Spacing */
+  .gap-4 {
+    gap: 8px !important;
+  }
+  .gap-6 {
+    gap: 12px !important;
+  }
+  
+  .p-6 {
+    padding: 12px !important;
+  }
+  .p-8 {
+    padding: 16px !important;
+  }
+  
+  /* Cards */
+  .rounded-2xl {
+    border-radius: 12px !important;
+  }
+  
+  .shadow-lg {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+  }
+  
+  /* Tables - make scrollable */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto !important;
+  }
+  
+  table {
+    font-size: 0.8rem !important;
+    min-width: 500px !important;
+  }
+  
+  table th, table td {
+    padding: 8px 10px !important;
+  }
+  
+  /* Buttons */
+  button, .btn {
+    min-height: 44px;
+    font-size: 0.9rem !important;
+    padding: 10px 16px !important;
+  }
+  
+  /* Inputs */
+  input, select, textarea {
+    font-size: 16px !important; /* Prevents iOS zoom */
+    padding: 10px 12px !important;
+  }
+  
+  /* Cards grid for dashboard */
+  .grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Quick actions on dashboard */
+  .grid-cols-2.md\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Market data grid */
+  .grid-cols-2.md\:grid-cols-3.lg\:grid-cols-6 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Sidebar tabs on profile */
+  .lg\:grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .lg\:col-span-1 {
+    grid-column: span 1 !important;
+  }
+  
+  .lg\:col-span-3 {
+    grid-column: span 1 !important;
+  }
+  
+  /* Crypto grid on deposit */
+  .grid-cols-2.md\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Gift card grid */
+  .grid-cols-2.md\:grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Country grid */
+  .grid-cols-2.md\:grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Welcome section */
+  .flex-col.md\:flex-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  
+  .text-right {
+    text-align: left !important;
+  }
+  
+  /* Withdraw/Fiat bank details */
+  .space-y-4 {
+    gap: 12px !important;
+  }
+  
+  /* Admin dashboard stats */
+  .grid-cols-1.md\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Admin dashboard buttons */
+  .flex.gap-4 {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  
+  .flex.gap-4 button {
+    font-size: 0.75rem !important;
+    padding: 6px 10px !important;
+  }
+  
+  /* Toast messages */
+  .max-w-md {
+    max-width: 100% !important;
+  }
+  
+  /* Balance display on dashboard */
+  .text-3xl {
+    font-size: 1.8rem !important;
+  }
+  .text-2xl {
+    font-size: 1.4rem !important;
+  }
+  
+  /* Admin KYC table */
+  .px-6 {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  .py-4 {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+  
+  /* Transaction list */
+  .flex-wrap {
+    gap: 4px !important;
+  }
+  
+  .gap-4 {
+    gap: 6px !important;
+  }
+  
+  /* Header spacing */
+  .mb-8 {
+    margin-bottom: 16px !important;
+  }
+  .mt-4 {
+    margin-top: 8px !important;
+  }
+}
+
+/* Medium devices (tablets, 641px to 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .grid-cols-2.md\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .grid-cols-2.md\:grid-cols-3.lg\:grid-cols-6 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* Fix for iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  
+  button, .btn {
+    min-height: 44px !important;
+  }
+}
+
+/* Fix for notch phones */
+@supports (padding: max(0px)) {
+  .container {
+    padding-left: max(12px, env(safe-area-inset-left)) !important;
+    padding-right: max(12px, env(safe-area-inset-right)) !important;
+  }
+}
