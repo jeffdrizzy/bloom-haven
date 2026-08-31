@@ -166,25 +166,25 @@ const Dashboard = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-6">
-            {[
-              { path: '/deposit', icon: '💳', label: 'Deposit', sub: 'Add funds' },
-              { path: '/withdraw', icon: '🏦', label: 'Withdraw', sub: 'Withdraw funds' },
-              { path: '/transactions', icon: '📊', label: 'History', sub: 'View transactions' },
-              { path: '/profile', icon: '⚙️', label: 'Profile', sub: 'Manage account' },
-            ].map((item) => (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className="rounded-xl shadow-lg p-2 sm:p-3 hover:shadow-xl transition text-center cursor-pointer"
-                style={{ background: brand.colors.surface }}
-              >
-                <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">{item.icon}</div>
-                <h3 className="font-semibold text-xs sm:text-sm" style={{ color: brand.colors.text }}>{item.label}</h3>
-                <p className="text-[10px] sm:text-xs" style={{ color: brand.colors.textMuted }}>{item.sub}</p>
-              </button>
-            ))}
-          </div>
+         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
+  {[
+    { path: '/deposit', icon: '💳', label: 'Deposit', sub: 'Add funds' },
+    { path: '/withdraw', icon: '🏦', label: 'Withdraw', sub: 'Withdraw funds' },
+    { path: '/transactions', icon: '📊', label: 'History', sub: 'View transactions' },
+    { path: '/profile', icon: '⚙️', label: 'Profile', sub: 'Manage account' },
+  ].map((item) => (
+    <button
+      key={item.path}
+      onClick={() => navigate(item.path)}
+      className="rounded-xl shadow-lg p-3 sm:p-4 hover:shadow-xl transition text-center cursor-pointer"
+      style={{ background: brand.colors.surface }}
+    >
+      <div className="text-2xl sm:text-3xl mb-1">{item.icon}</div>
+      <h3 className="font-semibold text-sm sm:text-base" style={{ color: brand.colors.text }}>{item.label}</h3>
+      <p className="text-xs sm:text-sm" style={{ color: brand.colors.textMuted }}>{item.sub}</p>
+    </button>
+  ))}
+</div>
 
           {/* Asset Breakdown */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
