@@ -172,6 +172,7 @@ const Dashboard = () => {
     { path: '/withdraw', icon: '🏦', label: 'Withdraw', sub: 'Withdraw funds' },
     { path: '/transactions', icon: '📊', label: 'History', sub: 'View transactions' },
     { path: '/profile', icon: '⚙️', label: 'Profile', sub: 'Manage account' },
+{ path: '/swap', icon: '🔄', label: 'Swap', sub: 'Exchange currencies' },
   ].map((item) => (
     <button
       key={item.path}

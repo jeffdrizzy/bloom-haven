@@ -1255,6 +1255,157 @@ app.post('/api/kyc/submit', authenticateToken, upload.single('governmentId'), as
   }
 });
 
+// ============ SWAP ROUTE ============
+
+// Get real-time exchange rates
+app.get('/api/swap/rates', async (req, res) => {
+  try {
+    // Fetch real prices from CoinGecko
+    const response = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+    );
+    const data = await response.json();
+    
+    // Also get USD price (always 1)
+    const rates = {
+      USD: 1,
+      BTC: data.bitcoin?.usd || 0,
+      ETH: data.ethereum?.usd || 0,
+      USDT: data.tether?.usd || 1,
+      BNB: data.bnb?.usd || 0,
+    };
+    
+    res.json(rates);
+  } catch (error) {
+    console.error('Error fetching rates:', error);
+    // Fallback rates if API fails
+    res.json({
+      USD: 1,
+      BTC: 65432,
+      ETH: 3456,
+      USDT: 1,
+      BNB: 587
+    });
+  }
+});
+
+// Execute swap
+app.post('/api/swap', authenticateToken, async (req, res) => {
+  try {
+    const { fromCurrency, toCurrency, amount } = req.body;
+    
+    if (!fromCurrency || !toCurrency || !amount || amount <= 0) {
+      return res.status(400).json({ message: 'Please provide valid swap details' });
+    }
+    
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Get current rates
+    const ratesResponse = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+    );
+    const ratesData = await ratesResponse.json();
+    
+    const rates = {
+      USD: 1,
+      BTC: ratesData.bitcoin?.usd || 65432,
+      ETH: ratesData.ethereum?.usd || 3456,
+      USDT: ratesData.tether?.usd || 1,
+      BNB: ratesData.bnb?.usd || 587,
+    };
+    
+    // Check if user has enough balance
+    let fromBalance = 0;
+    if (fromCurrency === 'USD') {
+      fromBalance = user.fiatBalance;
+    } else {
+      fromBalance = user.cryptoBalances[fromCurrency] || 0;
+    }
+    
+    if (fromBalance < amount) {
+      return res.status(400).json({ message: `Insufficient ${fromCurrency} balance` });
+    }
+    
+    // Calculate conversion
+    const fromRate = rates[fromCurrency];
+    const toRate = rates[toCurrency];
+    
+    if (!fromRate || !toRate || fromRate === 0) {
+      return res.status(400).json({ message: 'Invalid currency selected' });
+    }
+    
+    const usdValue = amount * fromRate;
+    const toAmount = usdValue / toRate;
+    
+    // Deduct from source
+    if (fromCurrency === 'USD') {
+      user.fiatBalance -= amount;
+    } else {
+      user.cryptoBalances[fromCurrency] -= amount;
+    }
+    
+    // Add to destination
+    if (toCurrency === 'USD') {
+      user.fiatBalance += toAmount;
+    } else {
+      user.cryptoBalances[toCurrency] = (user.cryptoBalances[toCurrency] || 0) + toAmount;
+    }
+    
+    await user.save();
+    
+    // Create transaction record
+    const transaction = new Transaction({
+      userId: req.user.userId,
+      type: 'swap',
+      currencyType: 'crypto',
+      currency: toCurrency,
+      amount: toAmount,
+      status: 'completed',
+      description: `Swapped ${amount} ${fromCurrency} to ${toAmount} ${toCurrency}`,
+      metadata: {
+        fromCurrency,
+        toCurrency,
+        fromAmount: amount,
+        toAmount: toAmount,
+        rate: toRate / fromRate,
+      },
+    });
+    await transaction.save();
+    
+    // Emit socket event
+    const io = req.app.get('io');
+    io.emit('balance-update', {
+      userId: req.user.userId,
+      newBalance: {
+        fiat: user.fiatBalance,
+        crypto: user.cryptoBalances,
+      },
+    });
+    
+    res.json({
+      message: `Successfully swapped ${amount} ${fromCurrency} to ${toAmount.toFixed(6)} ${toCurrency}`,
+      swap: {
+        fromCurrency,
+        toCurrency,
+        fromAmount: amount,
+        toAmount: toAmount.toFixed(6),
+        rate: (toRate / fromRate).toFixed(6),
+      },
+      newBalance: {
+        fiatBalance: user.fiatBalance,
+        cryptoBalances: user.cryptoBalances,
+      },
+    });
+    
+  } catch (error) {
+    console.error('Swap error:', error);
+    res.status(500).json({ message: 'Error processing swap' });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🌸 Bloom Haven server running on port ${PORT}`);

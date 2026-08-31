@@ -17,6 +17,7 @@ import AdminLogin from './AdminLogin';
 import UserLayout from './UserLayout';
 import LandingPage from './LandingPage';
 import MaintenanceWrapper from './MaintenanceWrapper';
+import Swap from './Swap';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -156,6 +157,16 @@ function App() {
             </AdminRoute>
           }
         />
+<Route
+  path="/swap"
+  element={
+    <ProtectedRoute>
+      <UserLayout>
+        <Swap />
+      </UserLayout>
+    </ProtectedRoute>
+  }
+/>
       </Routes>
     </Router>
   );
