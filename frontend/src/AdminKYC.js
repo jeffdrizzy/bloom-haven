@@ -237,7 +237,7 @@ const AdminKYC = () => {
                       <td className="px-6 py-4 text-sm">
                         {user.kyc?.governmentId ? (
                           <a 
-                            href={`http://localhost:5000/${user.kyc.governmentId}`} 
+                           href={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}/${user.kyc.governmentId}`}
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-blue-500 hover:underline flex items-center gap-1"
