@@ -6,11 +6,11 @@ const TransactionSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  type: {
-    type: String,
-    enum: ['deposit', 'withdraw', 'transfer'],
-    required: true,
-  },
+ type: {
+  type: String,
+  enum: ['deposit', 'withdraw', 'transfer', 'swap'],
+  required: true,
+},
   currencyType: {
     type: String,
     enum: ['fiat', 'crypto'],
