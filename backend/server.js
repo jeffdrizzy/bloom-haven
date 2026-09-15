@@ -7,6 +7,7 @@ const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const path = require('path');
+const fs = require('fs');
 
 // Models
 const User = require('./models/User');
@@ -46,6 +47,13 @@ app.use(cors({
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Ensure uploads folder exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('📁 Created uploads folder');
+}
+
 // MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)
@@ -60,6 +68,50 @@ io.on('connection', (socket) => {
 });
 
 app.set('io', io);
+
+// ============ PORTFOLIO SNAPSHOT HELPER ============
+const createPortfolioSnapshot = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) return;
+
+    let rates = { BTC: 65432, ETH: 3456, USDT: 1, BNB: 587 };
+    try {
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+      );
+      const data = await response.json();
+      rates = {
+        BTC: data.bitcoin?.usd || 65432,
+        ETH: data.ethereum?.usd || 3456,
+        USDT: data.tether?.usd || 1,
+        BNB: data.bnb?.usd || 587,
+      };
+    } catch (err) {
+      console.log('Using fallback rates for snapshot');
+    }
+
+    const cryptoTotal = 
+      (user.cryptoBalances.BTC || 0) * rates.BTC +
+      (user.cryptoBalances.ETH || 0) * rates.ETH +
+      (user.cryptoBalances.USDT || 0) * rates.USDT +
+      (user.cryptoBalances.BNB || 0) * rates.BNB;
+
+    const totalBalance = (user.fiatBalance || 0) + cryptoTotal;
+
+    await PortfolioHistory.create({
+      userId: user._id,
+      totalBalance,
+      fiatBalance: user.fiatBalance,
+      cryptoBalances: user.cryptoBalances,
+      snapshotDate: new Date(),
+    });
+
+    console.log(`📸 Snapshot created for ${user.email}: $${totalBalance.toFixed(2)}`);
+  } catch (error) {
+    console.error('Snapshot helper error:', error);
+  }
+};
 
 // Test route
 app.get('/api', (req, res) => {
@@ -115,7 +167,6 @@ app.post('/api/register', async (req, res) => {
       user.referralBonusApplied = true;
       await user.save();
 
-      // Notify referrer
       await Notification.create({
         userId: referrer._id,
         title: '🎁 Referral Bonus Earned!',
@@ -124,7 +175,6 @@ app.post('/api/register', async (req, res) => {
         link: '/referral',
       });
 
-      // Notify new user
       await Notification.create({
         userId: user._id,
         title: '🎁 Welcome Bonus!',
@@ -132,7 +182,11 @@ app.post('/api/register', async (req, res) => {
         type: 'referral',
         link: '/dashboard',
       });
+
+      await createPortfolioSnapshot(referrer._id);
     }
+
+    await createPortfolioSnapshot(user._id);
 
     res.status(201).json({
       message: referrer 
@@ -481,6 +535,9 @@ app.post('/api/referrals/apply', authenticateToken, async (req, res) => {
     user.referralBonusApplied = true;
     await user.save();
 
+    await createPortfolioSnapshot(referrer._id);
+    await createPortfolioSnapshot(user._id);
+
     res.json({
       message: 'Referral bonus applied! $5 credited to both accounts.',
       referrer: {
@@ -514,7 +571,6 @@ app.put('/api/admin/users/:userId/approve', authenticateToken, isAdmin, async (r
     user.isApproved = true;
     await user.save();
 
-    // Create notification
     await Notification.create({
       userId: user._id,
       title: '✅ Account Approved',
@@ -539,7 +595,6 @@ app.put('/api/admin/users/:userId/freeze', authenticateToken, isAdmin, async (re
     user.isFrozen = true;
     await user.save();
 
-    // Create notification
     await Notification.create({
       userId: user._id,
       title: '❄️ Account Frozen',
@@ -564,7 +619,6 @@ app.put('/api/admin/users/:userId/unfreeze', authenticateToken, isAdmin, async (
     user.isFrozen = false;
     await user.save();
 
-    // Create notification
     await Notification.create({
       userId: user._id,
       title: '✅ Account Unfrozen',
@@ -589,7 +643,6 @@ app.put('/api/admin/users/:userId/blacklist', authenticateToken, isAdmin, async 
     user.isBlacklisted = true;
     await user.save();
 
-    // Create notification
     await Notification.create({
       userId: user._id,
       title: '🚫 Account Blacklisted',
@@ -614,7 +667,6 @@ app.put('/api/admin/users/:userId/unblacklist', authenticateToken, isAdmin, asyn
     user.isBlacklisted = false;
     await user.save();
 
-    // Create notification
     await Notification.create({
       userId: user._id,
       title: '✅ Account Restored',
@@ -644,7 +696,6 @@ app.post('/api/admin/users/:userId/balance', authenticateToken, isAdmin, async (
     user.fiatBalance += amount;
     await user.save();
 
-    // Create notification
     await Notification.create({
       userId: user._id,
       title: '💰 Balance Added',
@@ -652,6 +703,8 @@ app.post('/api/admin/users/:userId/balance', authenticateToken, isAdmin, async (
       type: 'system',
       link: '/dashboard',
     });
+
+    await createPortfolioSnapshot(user._id);
     
     res.json({ 
       message: `Added $${amount} to ${user.fullName}'s account! New balance: $${user.fiatBalance}`,
@@ -680,7 +733,6 @@ app.put('/api/admin/users/:userId/set-pin', authenticateToken, isAdmin, async (r
     user.pinIssuedAt = new Date();
     await user.save();
 
-    // Create notification
     await Notification.create({
       userId: user._id,
       title: '🔑 Withdrawal PIN Issued',
@@ -944,7 +996,6 @@ app.put('/api/admin/deposits/:depositId/approve', authenticateToken, isAdmin, as
     }
     await user.save();
 
-    // Create notification
     await Notification.create({
       userId: deposit.userId,
       title: '💰 Deposit Approved',
@@ -952,6 +1003,8 @@ app.put('/api/admin/deposits/:depositId/approve', authenticateToken, isAdmin, as
       type: 'deposit',
       link: '/dashboard',
     });
+
+    await createPortfolioSnapshot(deposit.userId);
 
     const io = req.app.get('io');
     io.emit('deposit-approved', {
@@ -998,7 +1051,6 @@ app.put('/api/admin/deposits/:depositId/reject', authenticateToken, isAdmin, asy
     deposit.approvedAt = new Date();
     await deposit.save();
 
-    // Create notification
     await Notification.create({
       userId: deposit.userId,
       title: '❌ Deposit Rejected',
@@ -1085,14 +1137,15 @@ app.put('/api/admin/withdrawals/:withdrawId/approve', authenticateToken, isAdmin
     withdraw.processedAt = new Date();
     await withdraw.save();
 
-    // Create notification    
-await Notification.create({
+    await Notification.create({
       userId: withdraw.userId,
       title: '🏦 Withdrawal Approved',
       message: `Your withdrawal of ${withdraw.amount} ${withdraw.currency} has been approved and is being processed.`,
       type: 'withdrawal',
       link: '/dashboard',
     });
+
+    await createPortfolioSnapshot(withdraw.userId);
 
     const io = req.app.get('io');
     io.emit('withdraw-approved', {
@@ -1139,7 +1192,6 @@ app.put('/api/admin/withdrawals/:withdrawId/reject', authenticateToken, isAdmin,
     withdraw.processedAt = new Date();
     await withdraw.save();
 
-    // Create notification
     await Notification.create({
       userId: withdraw.userId,
       title: '❌ Withdrawal Rejected',
@@ -1356,7 +1408,6 @@ app.put('/api/admin/kyc/:userId/verify', authenticateToken, isAdmin, async (req,
     user.kyc.adminNote = adminNote || 'KYC verified';
     await user.save();
 
-    // Create notification
     await Notification.create({
       userId: user._id,
       title: '✅ KYC Verified',
@@ -1394,7 +1445,6 @@ app.put('/api/admin/kyc/:userId/reject', authenticateToken, isAdmin, async (req,
     user.kyc.adminNote = adminNote || 'KYC rejected';
     await user.save();
 
-    // Create notification
     await Notification.create({
       userId: user._id,
       title: '❌ KYC Rejected',
@@ -1569,6 +1619,8 @@ app.post('/api/swap', authenticateToken, async (req, res) => {
       },
     });
     await transaction.save();
+
+    await createPortfolioSnapshot(req.user.userId);
     
     const io = req.app.get('io');
     io.emit('balance-update', {
@@ -1604,7 +1656,6 @@ app.post('/api/swap', authenticateToken, async (req, res) => {
 
 // ============ NOTIFICATION ROUTES ============
 
-// Get user's notifications
 app.get('/api/notifications', authenticateToken, async (req, res) => {
   try {
     const notifications = await Notification.find({ userId: req.user.userId })
@@ -1626,7 +1677,6 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
   }
 });
 
-// Mark notification as read
 app.put('/api/notifications/:notificationId/read', authenticateToken, async (req, res) => {
   try {
     const notification = await Notification.findById(req.params.notificationId);
@@ -1648,7 +1698,6 @@ app.put('/api/notifications/:notificationId/read', authenticateToken, async (req
   }
 });
 
-// Mark all as read
 app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
   try {
     await Notification.updateMany(
@@ -1662,7 +1711,6 @@ app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
   }
 });
 
-// Delete notification
 app.delete('/api/notifications/:notificationId', authenticateToken, async (req, res) => {
   try {
     const notification = await Notification.findById(req.params.notificationId);
@@ -1680,6 +1728,145 @@ app.delete('/api/notifications/:notificationId', authenticateToken, async (req, 
     res.json({ message: 'Notification deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting notification' });
+  }
+});
+
+// ============ PORTFOLIO HISTORY ROUTES ============
+
+app.get('/api/portfolio/history', authenticateToken, async (req, res) => {
+  try {
+    const { days = 30 } = req.query;
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(days));
+
+    const history = await PortfolioHistory.find({
+      userId: req.user.userId,
+      snapshotDate: { $gte: startDate },
+    })
+      .sort({ snapshotDate: 1 })
+      .select('totalBalance snapshotDate');
+
+    if (history.length === 0) {
+      const user = await User.findById(req.user.userId);
+      
+      let rates = { BTC: 65432, ETH: 3456, USDT: 1, BNB: 587 };
+      try {
+        const response = await fetch(
+          'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+        );
+        const data = await response.json();
+        rates = {
+          BTC: data.bitcoin?.usd || 65432,
+          ETH: data.ethereum?.usd || 3456,
+          USDT: data.tether?.usd || 1,
+          BNB: data.bnb?.usd || 587,
+        };
+      } catch (err) {
+        console.log('Using fallback rates for portfolio');
+      }
+
+      const cryptoTotal = 
+        (user.cryptoBalances.BTC || 0) * rates.BTC +
+        (user.cryptoBalances.ETH || 0) * rates.ETH +
+        (user.cryptoBalances.USDT || 0) * rates.USDT +
+        (user.cryptoBalances.BNB || 0) * rates.BNB;
+
+      const currentTotal = (user.fiatBalance || 0) + cryptoTotal;
+
+      return res.json({
+        history: [
+          {
+            totalBalance: currentTotal,
+            snapshotDate: new Date(),
+          },
+        ],
+      });
+    }
+
+    res.json({ history });
+  } catch (error) {
+    console.error('Portfolio history error:', error);
+    res.status(500).json({ message: 'Error fetching portfolio history' });
+  }
+});
+
+app.post('/api/portfolio/snapshot', authenticateToken, async (req, res) => {
+  try {
+    await createPortfolioSnapshot(req.user.userId);
+    const user = await User.findById(req.user.userId);
+    
+    let rates = { BTC: 65432, ETH: 3456, USDT: 1, BNB: 587 };
+    try {
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+      );
+      const data = await response.json();
+      rates = {
+        BTC: data.bitcoin?.usd || 65432,
+        ETH: data.ethereum?.usd || 3456,
+        USDT: data.tether?.usd || 1,
+        BNB: data.bnb?.usd || 587,
+      };
+    } catch (err) {}
+
+    const cryptoTotal = 
+      (user.cryptoBalances.BTC || 0) * rates.BTC +
+      (user.cryptoBalances.ETH || 0) * rates.ETH +
+      (user.cryptoBalances.USDT || 0) * rates.USDT +
+      (user.cryptoBalances.BNB || 0) * rates.BNB;
+
+    const totalBalance = (user.fiatBalance || 0) + cryptoTotal;
+
+    res.json({ message: 'Snapshot created', totalBalance });
+  } catch (error) {
+    console.error('Portfolio snapshot error:', error);
+    res.status(500).json({ message: 'Error creating snapshot' });
+  }
+});
+
+app.post('/api/portfolio/snapshot-all', async (req, res) => {
+  try {
+    const users = await User.find({ isApproved: true });
+    let created = 0;
+
+    let rates = { BTC: 65432, ETH: 3456, USDT: 1, BNB: 587 };
+    try {
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+      );
+      const data = await response.json();
+      rates = {
+        BTC: data.bitcoin?.usd || 65432,
+        ETH: data.ethereum?.usd || 3456,
+        USDT: data.tether?.usd || 1,
+        BNB: data.bnb?.usd || 587,
+      };
+    } catch (err) {}
+
+    for (const user of users) {
+      const cryptoTotal = 
+        (user.cryptoBalances.BTC || 0) * rates.BTC +
+        (user.cryptoBalances.ETH || 0) * rates.ETH +
+        (user.cryptoBalances.USDT || 0) * rates.USDT +
+        (user.cryptoBalances.BNB || 0) * rates.BNB;
+
+      const totalBalance = (user.fiatBalance || 0) + cryptoTotal;
+
+      await PortfolioHistory.create({
+        userId: user._id,
+        totalBalance,
+        fiatBalance: user.fiatBalance,
+        cryptoBalances: user.cryptoBalances,
+        snapshotDate: new Date(),
+      });
+      created++;
+    }
+
+    res.json({ message: `Created ${created} snapshots`, created });
+  } catch (error) {
+    console.error('Snapshot all error:', error);
+    res.status(500).json({ message: 'Error creating snapshots' });
   }
 });
 
@@ -1801,163 +1988,6 @@ app.post('/api/migrate-users', async (req, res) => {
       message: 'Error migrating users',
       error: error.message 
     });
-  }
-});
-// ============ PORTFOLIO HISTORY ROUTES ============
-
-// Get portfolio history
-app.get('/api/portfolio/history', authenticateToken, async (req, res) => {
-  try {
-    const { days = 30 } = req.query;
-
-    // Calculate date range
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - parseInt(days));
-
-    const history = await PortfolioHistory.find({
-      userId: req.user.userId,
-      snapshotDate: { $gte: startDate },
-    })
-      .sort({ snapshotDate: 1 })
-      .select('totalBalance snapshotDate');
-
-    // If no history, create one from current balance
-    if (history.length === 0) {
-      const user = await User.findById(req.user.userId);
-      
-      // Get current crypto prices
-      let rates = { BTC: 65432, ETH: 3456, USDT: 1, BNB: 587 };
-      try {
-        const response = await fetch(
-          'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
-        );
-        const data = await response.json();
-        rates = {
-          BTC: data.bitcoin?.usd || 65432,
-          ETH: data.ethereum?.usd || 3456,
-          USDT: data.tether?.usd || 1,
-          BNB: data.bnb?.usd || 587,
-        };
-      } catch (err) {
-        console.log('Using fallback rates for portfolio');
-      }
-
-      const cryptoTotal = 
-        (user.cryptoBalances.BTC || 0) * rates.BTC +
-        (user.cryptoBalances.ETH || 0) * rates.ETH +
-        (user.cryptoBalances.USDT || 0) * rates.USDT +
-        (user.cryptoBalances.BNB || 0) * rates.BNB;
-
-      const currentTotal = (user.fiatBalance || 0) + cryptoTotal;
-
-      return res.json({
-        history: [
-          {
-            totalBalance: currentTotal,
-            snapshotDate: new Date(),
-          },
-        ],
-      });
-    }
-
-    res.json({ history });
-  } catch (error) {
-    console.error('Portfolio history error:', error);
-    res.status(500).json({ message: 'Error fetching portfolio history' });
-  }
-});
-
-// Create portfolio snapshot (called after transactions)
-app.post('/api/portfolio/snapshot', authenticateToken, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId);
-
-    // Get current crypto prices
-    let rates = { BTC: 65432, ETH: 3456, USDT: 1, BNB: 587 };
-    try {
-      const response = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
-      );
-      const data = await response.json();
-      rates = {
-        BTC: data.bitcoin?.usd || 65432,
-        ETH: data.ethereum?.usd || 3456,
-        USDT: data.tether?.usd || 1,
-        BNB: data.bnb?.usd || 587,
-      };
-    } catch (err) {
-      console.log('Using fallback rates for snapshot');
-    }
-
-    const cryptoTotal = 
-      (user.cryptoBalances.BTC || 0) * rates.BTC +
-      (user.cryptoBalances.ETH || 0) * rates.ETH +
-      (user.cryptoBalances.USDT || 0) * rates.USDT +
-      (user.cryptoBalances.BNB || 0) * rates.BNB;
-
-    const totalBalance = (user.fiatBalance || 0) + cryptoTotal;
-
-    await PortfolioHistory.create({
-      userId: req.user.userId,
-      totalBalance,
-      fiatBalance: user.fiatBalance,
-      cryptoBalances: user.cryptoBalances,
-      snapshotDate: new Date(),
-    });
-
-    res.json({ message: 'Snapshot created', totalBalance });
-  } catch (error) {
-    console.error('Portfolio snapshot error:', error);
-    res.status(500).json({ message: 'Error creating snapshot' });
-  }
-});
-
-// Create daily snapshots for all users (can be called by cron job)
-app.post('/api/portfolio/snapshot-all', async (req, res) => {
-  try {
-    const users = await User.find({ isApproved: true });
-    let created = 0;
-
-    // Get current crypto prices once
-    let rates = { BTC: 65432, ETH: 3456, USDT: 1, BNB: 587 };
-    try {
-      const response = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
-      );
-      const data = await response.json();
-      rates = {
-        BTC: data.bitcoin?.usd || 65432,
-        ETH: data.ethereum?.usd || 3456,
-        USDT: data.tether?.usd || 1,
-        BNB: data.bnb?.usd || 587,
-      };
-    } catch (err) {
-      console.log('Using fallback rates');
-    }
-
-    for (const user of users) {
-      const cryptoTotal = 
-        (user.cryptoBalances.BTC || 0) * rates.BTC +
-        (user.cryptoBalances.ETH || 0) * rates.ETH +
-        (user.cryptoBalances.USDT || 0) * rates.USDT +
-        (user.cryptoBalances.BNB || 0) * rates.BNB;
-
-      const totalBalance = (user.fiatBalance || 0) + cryptoTotal;
-
-      await PortfolioHistory.create({
-        userId: user._id,
-        totalBalance,
-        fiatBalance: user.fiatBalance,
-        cryptoBalances: user.cryptoBalances,
-        snapshotDate: new Date(),
-      });
-      created++;
-    }
-
-    res.json({ message: `Created ${created} snapshots`, created });
-  } catch (error) {
-    console.error('Snapshot all error:', error);
-    res.status(500).json({ message: 'Error creating snapshots' });
   }
 });
 
