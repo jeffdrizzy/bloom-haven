@@ -1084,7 +1084,8 @@ app.put('/api/admin/withdrawals/:withdrawId/approve', authenticateToken, isAdmin
     withdraw.processedAt = new Date();
     await withdraw.save();
 
-    // Create notification    await Notification.create({
+    // Create notification    
+await Notification.create({
       userId: withdraw.userId,
       title: '🏦 Withdrawal Approved',
       message: `Your withdrawal of ${withdraw.amount} ${withdraw.currency} has been approved and is being processed.`,
