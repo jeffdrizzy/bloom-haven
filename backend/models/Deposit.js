@@ -16,14 +16,16 @@ const DepositSchema = new mongoose.Schema({
   enum: ['BTC', 'ETH', 'USDT', 'BNB', 'USD', 'EUR', 'GBP', 'NGN', 'CAD', 'AUD'],
   required: true,
 },
-giftcardType: {
-  type: String,
-  enum: ['Amazon', 'Apple', 'Google Play', 'Steam', 'Netflix'],
-},
-giftcardCountry: {
-  type: String,
-  enum: ['US', 'UK', 'CA', 'NG', 'AU', 'DE', 'FR'],
-},
+ giftcardType: {
+    type: String,
+    enum: ['Amazon', 'Apple', 'Google Play', 'Steam', 'Netflix', ''],
+    default: '',
+  },
+  giftcardCountry: {
+    type: String,
+    enum: ['US', 'UK', 'CA', 'NG', 'AU', 'DE', 'FR', ''],
+    default: '',
+  },
   amount: {
     type: Number,
     required: true,
