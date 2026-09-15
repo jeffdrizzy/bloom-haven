@@ -392,15 +392,32 @@ app.post('/api/verify-pin', authenticateToken, async (req, res) => {
 
 // ============ REFERRAL ROUTES ============
 
-// Get referral info
+// Get referral info (with auto-generation)
 app.get('/api/referrals', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select(
+    let user = await User.findById(req.user.userId).select(
       'referralCode referralCount referralEarnings fiatBalance'
     );
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Auto-generate referral code if missing
+    if (!user.referralCode) {
+      const generateReferralCode = () => {
+        return 'BH' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      };
+      
+      let newCode = generateReferralCode();
+      let codeExists = await User.findOne({ referralCode: newCode });
+      while (codeExists) {
+        newCode = generateReferralCode();
+        codeExists = await User.findOne({ referralCode: newCode });
+      }
+      
+      user.referralCode = newCode;
+      await user.save();
     }
 
     // Get referred users
@@ -412,7 +429,7 @@ app.get('/api/referrals', authenticateToken, async (req, res) => {
       referralCode: user.referralCode,
       referralCount: user.referralCount || 0,
       referralEarnings: user.referralEarnings || 0,
-      referralLink: `${process.env.CLIENT_URL || 'http://localhost:3000'}/register?ref=${user.referralCode}`,
+      referralLink: `${process.env.CLIENT_URL || 'https://bloom-haven-ten.vercel.app'}/register?ref=${user.referralCode}`,
       referredUsers: referredUsers.map(u => ({
         fullName: u.fullName,
         email: u.email,
@@ -440,12 +457,10 @@ app.post('/api/referrals/apply', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Referrer not found' });
     }
 
-    // Check if already applied
     if (user.referralBonusApplied) {
       return res.status(400).json({ message: 'Referral bonus already applied' });
     }
 
-    // Apply bonus
     referrer.referralEarnings += 5;
     referrer.fiatBalance += 5;
     referrer.referralCount += 1;
@@ -721,7 +736,6 @@ app.get('/api/deposit/addresses', async (req, res) => {
 
 // ============ WITHDRAW ROUTES ============
 
-// Request withdrawal (user)
 app.post('/api/withdraw', authenticateToken, async (req, res) => {
   try {
     const { withdrawType, currency, amount, walletAddress, bankName, accountName, accountNumber, description } = req.body;
@@ -787,7 +801,6 @@ app.post('/api/withdraw', authenticateToken, async (req, res) => {
   }
 });
 
-// Get user's withdrawals
 app.get('/api/withdrawals', authenticateToken, async (req, res) => {
   try {
     const withdrawals = await Withdraw.find({ userId: req.user.userId })
@@ -1110,7 +1123,6 @@ app.put('/api/admin/settings', authenticateToken, isAdmin, async (req, res) => {
 
 // ============ TRANSACTIONS ROUTE ============
 
-// Get user's transaction history (deposits + withdrawals + swaps)
 app.get('/api/transactions', authenticateToken, async (req, res) => {
   try {
     const deposits = await Deposit.find({ userId: req.user.userId });
@@ -1155,7 +1167,6 @@ app.get('/api/transactions', authenticateToken, async (req, res) => {
       });
     });
 
-    // Sort by date (newest first)
     transactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     res.json(transactions);
@@ -1509,7 +1520,7 @@ app.post('/api/migrate-users', async (req, res) => {
       }
       
       // Add referral fields if missing
-      if (user.referralCode === undefined || user.referralCode === '') {
+      if (!user.referralCode) {
         const generateReferralCode = () => {
           return 'BH' + Math.random().toString(36).substring(2, 8).toUpperCase();
         };
@@ -1517,13 +1528,18 @@ app.post('/api/migrate-users', async (req, res) => {
         needsUpdate = true;
       }
       
-      if (user.referralCount === undefined) {
+      if (user.referralCount === undefined || user.referralCount === null) {
         user.referralCount = 0;
         needsUpdate = true;
       }
       
-      if (user.referralEarnings === undefined) {
+      if (user.referralEarnings === undefined || user.referralEarnings === null) {
         user.referralEarnings = 0;
+        needsUpdate = true;
+      }
+      
+      if (user.referralBonusApplied === undefined) {
+        user.referralBonusApplied = false;
         needsUpdate = true;
       }
       
