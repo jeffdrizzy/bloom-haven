@@ -1108,6 +1108,63 @@ app.put('/api/admin/settings', authenticateToken, isAdmin, async (req, res) => {
   }
 });
 
+// ============ TRANSACTIONS ROUTE ============
+
+// Get user's transaction history (deposits + withdrawals + swaps)
+app.get('/api/transactions', authenticateToken, async (req, res) => {
+  try {
+    const deposits = await Deposit.find({ userId: req.user.userId });
+    const withdrawals = await Withdraw.find({ userId: req.user.userId });
+    const swaps = await Transaction.find({ userId: req.user.userId, type: 'swap' });
+
+    const transactions = [];
+
+    deposits.forEach(d => {
+      transactions.push({
+        _id: d._id,
+        type: 'deposit',
+        amount: d.amount,
+        currency: d.currency,
+        status: d.status,
+        createdAt: d.createdAt,
+        depositType: d.depositType,
+      });
+    });
+
+    withdrawals.forEach(w => {
+      transactions.push({
+        _id: w._id,
+        type: 'withdraw',
+        amount: w.amount,
+        currency: w.currency,
+        status: w.status,
+        createdAt: w.createdAt,
+        withdrawType: w.withdrawType,
+      });
+    });
+
+    swaps.forEach(s => {
+      transactions.push({
+        _id: s._id,
+        type: 'swap',
+        amount: s.amount,
+        currency: s.currency,
+        status: s.status,
+        createdAt: s.createdAt,
+        metadata: s.metadata,
+      });
+    });
+
+    // Sort by date (newest first)
+    transactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json(transactions);
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    res.status(500).json({ message: 'Error fetching transactions' });
+  }
+});
+
 // ============ BALANCE ROUTE ============
 
 app.get('/api/balance', authenticateToken, async (req, res) => {
