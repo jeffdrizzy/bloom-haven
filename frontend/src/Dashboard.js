@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [balance, setBalance] = useState({ fiatBalance: 0, cryptoBalances: {} });
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [marketData, setMarketData] = useState([]);
+  const [cryptoPrices, setCryptoPrices] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showBalance, setShowBalance] = useState(true);
@@ -22,6 +23,13 @@ const Dashboard = () => {
     }
     setUser(currentUser);
     fetchAllData();
+
+    // Auto-refresh balance + prices every 60 seconds
+    const interval = setInterval(() => {
+      fetchAllData();
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, [navigate]);
 
   const fetchAllData = async () => {
@@ -67,6 +75,16 @@ const Dashboard = () => {
       );
       const data = await response.json();
       
+      // Store prices for balance calculation
+      setCryptoPrices({
+        BTC: data.bitcoin?.usd || 0,
+        ETH: data.ethereum?.usd || 0,
+        USDT: data.tether?.usd || 1,
+        BNB: data.bnb?.usd || 0,
+        SOL: data.solana?.usd || 0,
+        ADA: data.cardano?.usd || 0,
+      });
+
       return [
         { name: 'Bitcoin', symbol: 'BTC', price: data.bitcoin?.usd || 0, change: data.bitcoin?.usd_24h_change || 0 },
         { name: 'Ethereum', symbol: 'ETH', price: data.ethereum?.usd || 0, change: data.ethereum?.usd_24h_change || 0 },
@@ -77,6 +95,17 @@ const Dashboard = () => {
       ];
     } catch (error) {
       console.error('Market data error:', error);
+      
+      // Fallback prices
+      setCryptoPrices({
+        BTC: 65432,
+        ETH: 3456,
+        USDT: 1,
+        BNB: 587,
+        SOL: 172,
+        ADA: 0.45,
+      });
+
       return [
         { name: 'Bitcoin', symbol: 'BTC', price: 65432, change: 2.5 },
         { name: 'Ethereum', symbol: 'ETH', price: 3456, change: -1.2 },
@@ -102,7 +131,22 @@ const Dashboard = () => {
     }
   };
 
-  const totalBalance = (balance?.fiatBalance || 0) + Object.values(balance?.cryptoBalances || {}).reduce((sum, val) => sum + val, 0);
+  // Calculate total balance in USD (fiat + crypto at current prices)
+  const calculateTotalBalance = () => {
+    const fiat = balance?.fiatBalance || 0;
+    
+    let cryptoTotal = 0;
+    const cryptoBalances = balance?.cryptoBalances || {};
+    
+    Object.entries(cryptoBalances).forEach(([currency, amount]) => {
+      const price = cryptoPrices[currency] || 0;
+      cryptoTotal += (amount || 0) * price;
+    });
+
+    return fiat + cryptoTotal;
+  };
+
+  const totalBalance = calculateTotalBalance();
 
   if (loading) {
     return (
@@ -165,7 +209,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Quick Actions - Removed Profile */}
+          {/* Quick Actions */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
             {[
               { path: '/deposit', icon: '💳', label: 'Deposit', sub: 'Add funds' },
@@ -198,11 +242,17 @@ const Dashboard = () => {
             {Object.entries(cryptoBalances).length > 0 ? (
               Object.entries(cryptoBalances).map(([currency, amount]) => {
                 const icon = currency === 'BTC' ? '₿' : currency === 'ETH' ? '⟠' : currency === 'USDT' ? '₮' : '◆';
+                const price = cryptoPrices[currency] || 0;
+                const usdValue = (amount || 0) * price;
+
                 return (
                   <div key={currency} className="rounded-2xl shadow-lg p-4 sm:p-6" style={{ background: brand.colors.surface }}>
                     <h3 className="text-xs sm:text-sm mb-2" style={{ color: brand.colors.primary }}>{icon} {currency}</h3>
                     <p className="text-xl sm:text-2xl font-bold" style={{ color: brand.colors.text }}>
-                      {showBalance ? (amount || 0) : '••••••••'}
+                      {showBalance ? (amount || 0).toFixed(6) : '••••••••'}
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: brand.colors.textMuted }}>
+                      {showBalance ? `≈ $${usdValue.toFixed(2)}` : '••••••'}
                     </p>
                   </div>
                 );
@@ -229,7 +279,7 @@ const Dashboard = () => {
                 </div>
               ))}
             </div>
-            <p className="text-[10px] sm:text-xs text-center mt-4" style={{ color: brand.colors.textMuted }}>Live prices from CoinGecko • Updated in real-time</p>
+            <p className="text-[10px] sm:text-xs text-center mt-4" style={{ color: brand.colors.textMuted }}>Live prices from CoinGecko • Updated every 60 seconds</p>
           </div>
 
           {/* Recent Transactions */}
