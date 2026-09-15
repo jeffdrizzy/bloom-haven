@@ -19,6 +19,8 @@ import LandingPage from './LandingPage';
 import MaintenanceWrapper from './MaintenanceWrapper';
 import Swap from './Swap';
 import './App.css';
+import Referral from './Referral';
+
 
 const ProtectedRoute = ({ children }) => {
   const user = localStorage.getItem('user');
@@ -107,6 +109,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+<Route
+  path="/referral"
+  element={
+    <ProtectedRoute>
+      <UserLayout>
+        <Referral />
+      </UserLayout>
+    </ProtectedRoute>
+  }
+/>
         
         {/* Admin Routes (no maintenance wrapper - admins can still access) */}
         <Route
