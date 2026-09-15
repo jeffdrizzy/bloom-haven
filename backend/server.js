@@ -15,6 +15,7 @@ const Transaction = require('./models/Transaction');
 const Deposit = require('./models/Deposit');
 const Withdraw = require('./models/Withdraw');
 const SystemSetting = require('./models/SystemSetting');
+const Notification = require('./models/Notification');
 
 // Middleware
 const upload = require('./middleware/upload');
@@ -112,6 +113,24 @@ app.post('/api/register', async (req, res) => {
       user.fiatBalance += 5;
       user.referralBonusApplied = true;
       await user.save();
+
+      // Notify referrer
+      await Notification.create({
+        userId: referrer._id,
+        title: '🎁 Referral Bonus Earned!',
+        message: `${fullName} signed up using your referral link. You earned $5!`,
+        type: 'referral',
+        link: '/referral',
+      });
+
+      // Notify new user
+      await Notification.create({
+        userId: user._id,
+        title: '🎁 Welcome Bonus!',
+        message: 'You received $5 bonus for signing up with a referral code!',
+        type: 'referral',
+        link: '/dashboard',
+      });
     }
 
     res.status(201).json({
@@ -493,6 +512,15 @@ app.put('/api/admin/users/:userId/approve', authenticateToken, isAdmin, async (r
     
     user.isApproved = true;
     await user.save();
+
+    // Create notification
+    await Notification.create({
+      userId: user._id,
+      title: '✅ Account Approved',
+      message: 'Your account has been approved! You can now start using all features.',
+      type: 'system',
+      link: '/dashboard',
+    });
     
     res.json({ message: `User ${user.fullName} has been approved!` });
   } catch (error) {
@@ -509,6 +537,15 @@ app.put('/api/admin/users/:userId/freeze', authenticateToken, isAdmin, async (re
     
     user.isFrozen = true;
     await user.save();
+
+    // Create notification
+    await Notification.create({
+      userId: user._id,
+      title: '❄️ Account Frozen',
+      message: 'Your account has been frozen. Please contact support for more information.',
+      type: 'system',
+      link: '/dashboard',
+    });
     
     res.json({ message: `User ${user.fullName} has been frozen!` });
   } catch (error) {
@@ -525,6 +562,15 @@ app.put('/api/admin/users/:userId/unfreeze', authenticateToken, isAdmin, async (
     
     user.isFrozen = false;
     await user.save();
+
+    // Create notification
+    await Notification.create({
+      userId: user._id,
+      title: '✅ Account Unfrozen',
+      message: 'Your account has been unfrozen. You can now use all features again.',
+      type: 'system',
+      link: '/dashboard',
+    });
     
     res.json({ message: `User ${user.fullName} has been unfrozen!` });
   } catch (error) {
@@ -541,6 +587,15 @@ app.put('/api/admin/users/:userId/blacklist', authenticateToken, isAdmin, async 
     
     user.isBlacklisted = true;
     await user.save();
+
+    // Create notification
+    await Notification.create({
+      userId: user._id,
+      title: '🚫 Account Blacklisted',
+      message: 'Your account has been blacklisted. Please contact support for more information.',
+      type: 'system',
+      link: '/dashboard',
+    });
     
     res.json({ message: `User ${user.fullName} has been blacklisted!` });
   } catch (error) {
@@ -557,6 +612,15 @@ app.put('/api/admin/users/:userId/unblacklist', authenticateToken, isAdmin, asyn
     
     user.isBlacklisted = false;
     await user.save();
+
+    // Create notification
+    await Notification.create({
+      userId: user._id,
+      title: '✅ Account Restored',
+      message: 'Your account has been restored. You can now use all features again.',
+      type: 'system',
+      link: '/dashboard',
+    });
     
     res.json({ message: `User ${user.fullName} has been unblacklisted!` });
   } catch (error) {
@@ -578,6 +642,15 @@ app.post('/api/admin/users/:userId/balance', authenticateToken, isAdmin, async (
     
     user.fiatBalance += amount;
     await user.save();
+
+    // Create notification
+    await Notification.create({
+      userId: user._id,
+      title: '💰 Balance Added',
+      message: `$${amount} has been added to your account by admin. New balance: $${user.fiatBalance.toFixed(2)}`,
+      type: 'system',
+      link: '/dashboard',
+    });
     
     res.json({ 
       message: `Added $${amount} to ${user.fullName}'s account! New balance: $${user.fiatBalance}`,
@@ -605,6 +678,15 @@ app.put('/api/admin/users/:userId/set-pin', authenticateToken, isAdmin, async (r
     user.pinIssued = true;
     user.pinIssuedAt = new Date();
     await user.save();
+
+    // Create notification
+    await Notification.create({
+      userId: user._id,
+      title: '🔑 Withdrawal PIN Issued',
+      message: 'Your withdrawal PIN has been issued by admin. You can now make withdrawals.',
+      type: 'pin',
+      link: '/withdraw',
+    });
 
     res.json({
       message: `Withdrawal PIN set for ${user.fullName}`,
@@ -714,7 +796,7 @@ app.get('/api/deposit/addresses', async (req, res) => {
   }
 });
 
-// ============ WITHDRAW ROUTES (with fee) ============
+// ============ WITHDRAW ROUTES ============
 
 app.post('/api/withdraw', authenticateToken, async (req, res) => {
   try {
@@ -729,7 +811,6 @@ app.post('/api/withdraw', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Get withdraw fee
     let withdrawFeePercent = 1;
     const feeSetting = await SystemSetting.findOne({ key: 'withdrawFee' });
     if (feeSetting) withdrawFeePercent = feeSetting.value;
@@ -862,6 +943,15 @@ app.put('/api/admin/deposits/:depositId/approve', authenticateToken, isAdmin, as
     }
     await user.save();
 
+    // Create notification
+    await Notification.create({
+      userId: deposit.userId,
+      title: '💰 Deposit Approved',
+      message: `Your deposit of ${deposit.amount} ${deposit.currency} has been approved and credited to your account.`,
+      type: 'deposit',
+      link: '/dashboard',
+    });
+
     const io = req.app.get('io');
     io.emit('deposit-approved', {
       depositId: deposit._id,
@@ -906,6 +996,15 @@ app.put('/api/admin/deposits/:depositId/reject', authenticateToken, isAdmin, asy
     deposit.approvedBy = req.user.userId;
     deposit.approvedAt = new Date();
     await deposit.save();
+
+    // Create notification
+    await Notification.create({
+      userId: deposit.userId,
+      title: '❌ Deposit Rejected',
+      message: `Your deposit of ${deposit.amount} ${deposit.currency} was rejected. Reason: ${deposit.adminNote}`,
+      type: 'deposit',
+      link: '/dashboard',
+    });
 
     const io = req.app.get('io');
     io.emit('deposit-rejected', {
@@ -985,6 +1084,14 @@ app.put('/api/admin/withdrawals/:withdrawId/approve', authenticateToken, isAdmin
     withdraw.processedAt = new Date();
     await withdraw.save();
 
+    // Create notification    await Notification.create({
+      userId: withdraw.userId,
+      title: '🏦 Withdrawal Approved',
+      message: `Your withdrawal of ${withdraw.amount} ${withdraw.currency} has been approved and is being processed.`,
+      type: 'withdrawal',
+      link: '/dashboard',
+    });
+
     const io = req.app.get('io');
     io.emit('withdraw-approved', {
       withdrawId: withdraw._id,
@@ -1030,6 +1137,15 @@ app.put('/api/admin/withdrawals/:withdrawId/reject', authenticateToken, isAdmin,
     withdraw.processedAt = new Date();
     await withdraw.save();
 
+    // Create notification
+    await Notification.create({
+      userId: withdraw.userId,
+      title: '❌ Withdrawal Rejected',
+      message: `Your withdrawal of ${withdraw.amount} ${withdraw.currency} was rejected. Reason: ${withdraw.adminNote}`,
+      type: 'withdrawal',
+      link: '/dashboard',
+    });
+
     const io = req.app.get('io');
     io.emit('withdraw-rejected', {
       withdrawId: withdraw._id,
@@ -1046,7 +1162,7 @@ app.put('/api/admin/withdrawals/:withdrawId/reject', authenticateToken, isAdmin,
   }
 });
 
-// ============ SYSTEM SETTINGS ROUTES (with fees) ============
+// ============ SYSTEM SETTINGS ROUTES ============
 
 app.get('/api/settings', async (req, res) => {
   try {
@@ -1238,6 +1354,15 @@ app.put('/api/admin/kyc/:userId/verify', authenticateToken, isAdmin, async (req,
     user.kyc.adminNote = adminNote || 'KYC verified';
     await user.save();
 
+    // Create notification
+    await Notification.create({
+      userId: user._id,
+      title: '✅ KYC Verified',
+      message: 'Your identity has been verified. You now have full access to all features.',
+      type: 'kyc',
+      link: '/profile',
+    });
+
     const io = req.app.get('io');
     io.emit('kyc-verified', {
       userId: user._id,
@@ -1266,6 +1391,15 @@ app.put('/api/admin/kyc/:userId/reject', authenticateToken, isAdmin, async (req,
     user.kyc.status = 'rejected';
     user.kyc.adminNote = adminNote || 'KYC rejected';
     await user.save();
+
+    // Create notification
+    await Notification.create({
+      userId: user._id,
+      title: '❌ KYC Rejected',
+      message: `Your KYC submission was rejected. Reason: ${user.kyc.adminNote}`,
+      type: 'kyc',
+      link: '/profile',
+    });
 
     res.json({
       message: `KYC rejected for ${user.fullName}`,
@@ -1317,7 +1451,7 @@ app.post('/api/kyc/submit', authenticateToken, upload.single('governmentId'), as
   }
 });
 
-// ============ SWAP ROUTE (with fee) ============
+// ============ SWAP ROUTE ============
 
 app.get('/api/swap/rates', async (req, res) => {
   try {
@@ -1360,7 +1494,6 @@ app.post('/api/swap', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Get swap fee
     let swapFeePercent = 0.5;
     const feeSetting = await SystemSetting.findOne({ key: 'swapFee' });
     if (feeSetting) swapFeePercent = feeSetting.value;
@@ -1396,20 +1529,17 @@ app.post('/api/swap', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'Invalid currency selected' });
     }
     
-    // Calculate amounts with fee
     const usdValue = amount * fromRate;
     const feeAmount = (usdValue * swapFeePercent) / 100;
     const netUsdValue = usdValue - feeAmount;
     const toAmount = netUsdValue / toRate;
     
-    // Deduct from source
     if (fromCurrency === 'USD') {
       user.fiatBalance -= amount;
     } else {
       user.cryptoBalances[fromCurrency] -= amount;
     }
     
-    // Add to destination
     if (toCurrency === 'USD') {
       user.fiatBalance += toAmount;
     } else {
@@ -1467,6 +1597,87 @@ app.post('/api/swap', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Swap error:', error);
     res.status(500).json({ message: 'Error processing swap' });
+  }
+});
+
+// ============ NOTIFICATION ROUTES ============
+
+// Get user's notifications
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+  try {
+    const notifications = await Notification.find({ userId: req.user.userId })
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    const unreadCount = await Notification.countDocuments({
+      userId: req.user.userId,
+      isRead: false,
+    });
+
+    res.json({
+      notifications,
+      unreadCount,
+    });
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ message: 'Error fetching notifications' });
+  }
+});
+
+// Mark notification as read
+app.put('/api/notifications/:notificationId/read', authenticateToken, async (req, res) => {
+  try {
+    const notification = await Notification.findById(req.params.notificationId);
+    
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+
+    if (notification.userId.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    notification.isRead = true;
+    await notification.save();
+
+    res.json({ message: 'Notification marked as read' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating notification' });
+  }
+});
+
+// Mark all as read
+app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
+  try {
+    await Notification.updateMany(
+      { userId: req.user.userId, isRead: false },
+      { isRead: true }
+    );
+
+    res.json({ message: 'All notifications marked as read' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating notifications' });
+  }
+});
+
+// Delete notification
+app.delete('/api/notifications/:notificationId', authenticateToken, async (req, res) => {
+  try {
+    const notification = await Notification.findById(req.params.notificationId);
+    
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+
+    if (notification.userId.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    await Notification.findByIdAndDelete(req.params.notificationId);
+
+    res.json({ message: 'Notification deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting notification' });
   }
 });
 
