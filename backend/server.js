@@ -16,6 +16,7 @@ const Deposit = require('./models/Deposit');
 const Withdraw = require('./models/Withdraw');
 const SystemSetting = require('./models/SystemSetting');
 const Notification = require('./models/Notification');
+const PortfolioHistory = require('./models/PortfolioHistory');
 
 // Middleware
 const upload = require('./middleware/upload');
@@ -1800,6 +1801,163 @@ app.post('/api/migrate-users', async (req, res) => {
       message: 'Error migrating users',
       error: error.message 
     });
+  }
+});
+// ============ PORTFOLIO HISTORY ROUTES ============
+
+// Get portfolio history
+app.get('/api/portfolio/history', authenticateToken, async (req, res) => {
+  try {
+    const { days = 30 } = req.query;
+
+    // Calculate date range
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(days));
+
+    const history = await PortfolioHistory.find({
+      userId: req.user.userId,
+      snapshotDate: { $gte: startDate },
+    })
+      .sort({ snapshotDate: 1 })
+      .select('totalBalance snapshotDate');
+
+    // If no history, create one from current balance
+    if (history.length === 0) {
+      const user = await User.findById(req.user.userId);
+      
+      // Get current crypto prices
+      let rates = { BTC: 65432, ETH: 3456, USDT: 1, BNB: 587 };
+      try {
+        const response = await fetch(
+          'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+        );
+        const data = await response.json();
+        rates = {
+          BTC: data.bitcoin?.usd || 65432,
+          ETH: data.ethereum?.usd || 3456,
+          USDT: data.tether?.usd || 1,
+          BNB: data.bnb?.usd || 587,
+        };
+      } catch (err) {
+        console.log('Using fallback rates for portfolio');
+      }
+
+      const cryptoTotal = 
+        (user.cryptoBalances.BTC || 0) * rates.BTC +
+        (user.cryptoBalances.ETH || 0) * rates.ETH +
+        (user.cryptoBalances.USDT || 0) * rates.USDT +
+        (user.cryptoBalances.BNB || 0) * rates.BNB;
+
+      const currentTotal = (user.fiatBalance || 0) + cryptoTotal;
+
+      return res.json({
+        history: [
+          {
+            totalBalance: currentTotal,
+            snapshotDate: new Date(),
+          },
+        ],
+      });
+    }
+
+    res.json({ history });
+  } catch (error) {
+    console.error('Portfolio history error:', error);
+    res.status(500).json({ message: 'Error fetching portfolio history' });
+  }
+});
+
+// Create portfolio snapshot (called after transactions)
+app.post('/api/portfolio/snapshot', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+
+    // Get current crypto prices
+    let rates = { BTC: 65432, ETH: 3456, USDT: 1, BNB: 587 };
+    try {
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+      );
+      const data = await response.json();
+      rates = {
+        BTC: data.bitcoin?.usd || 65432,
+        ETH: data.ethereum?.usd || 3456,
+        USDT: data.tether?.usd || 1,
+        BNB: data.bnb?.usd || 587,
+      };
+    } catch (err) {
+      console.log('Using fallback rates for snapshot');
+    }
+
+    const cryptoTotal = 
+      (user.cryptoBalances.BTC || 0) * rates.BTC +
+      (user.cryptoBalances.ETH || 0) * rates.ETH +
+      (user.cryptoBalances.USDT || 0) * rates.USDT +
+      (user.cryptoBalances.BNB || 0) * rates.BNB;
+
+    const totalBalance = (user.fiatBalance || 0) + cryptoTotal;
+
+    await PortfolioHistory.create({
+      userId: req.user.userId,
+      totalBalance,
+      fiatBalance: user.fiatBalance,
+      cryptoBalances: user.cryptoBalances,
+      snapshotDate: new Date(),
+    });
+
+    res.json({ message: 'Snapshot created', totalBalance });
+  } catch (error) {
+    console.error('Portfolio snapshot error:', error);
+    res.status(500).json({ message: 'Error creating snapshot' });
+  }
+});
+
+// Create daily snapshots for all users (can be called by cron job)
+app.post('/api/portfolio/snapshot-all', async (req, res) => {
+  try {
+    const users = await User.find({ isApproved: true });
+    let created = 0;
+
+    // Get current crypto prices once
+    let rates = { BTC: 65432, ETH: 3456, USDT: 1, BNB: 587 };
+    try {
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+      );
+      const data = await response.json();
+      rates = {
+        BTC: data.bitcoin?.usd || 65432,
+        ETH: data.ethereum?.usd || 3456,
+        USDT: data.tether?.usd || 1,
+        BNB: data.bnb?.usd || 587,
+      };
+    } catch (err) {
+      console.log('Using fallback rates');
+    }
+
+    for (const user of users) {
+      const cryptoTotal = 
+        (user.cryptoBalances.BTC || 0) * rates.BTC +
+        (user.cryptoBalances.ETH || 0) * rates.ETH +
+        (user.cryptoBalances.USDT || 0) * rates.USDT +
+        (user.cryptoBalances.BNB || 0) * rates.BNB;
+
+      const totalBalance = (user.fiatBalance || 0) + cryptoTotal;
+
+      await PortfolioHistory.create({
+        userId: user._id,
+        totalBalance,
+        fiatBalance: user.fiatBalance,
+        cryptoBalances: user.cryptoBalances,
+        snapshotDate: new Date(),
+      });
+      created++;
+    }
+
+    res.json({ message: `Created ${created} snapshots`, created });
+  } catch (error) {
+    console.error('Snapshot all error:', error);
+    res.status(500).json({ message: 'Error creating snapshots' });
   }
 });
 
