@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from './services/api';
 import { brand } from './brand';
+import NotificationBell from './NotificationBell';
 
 const HamburgerMenu = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const HamburgerMenu = () => {
 
   return (
     <>
-      {/* Fixed Header with Logo and Hamburger */}
+      {/* Fixed Header with Logo, Notification, and Hamburger */}
       <div 
         className="fixed top-0 left-0 right-0 z-40 px-4 py-3 flex justify-between items-center"
         style={{ 
@@ -59,41 +60,45 @@ const HamburgerMenu = () => {
           </div>
         </div>
 
-        {/* Hamburger Button - Top Right */}
-        <button
-          onClick={toggleMenu}
-          className="p-2 rounded-lg transition hover:bg-opacity-20"
-          style={{ 
-            background: isOpen ? brand.colors.creamSoft : 'transparent',
-          }}
-        >
-          <div className="w-6 h-5 flex flex-col justify-between">
-            <span 
-              className={`block h-0.5 w-full transition-all duration-300 ${
-                isOpen ? 'rotate-45 translate-y-2' : ''
-              }`}
-              style={{ 
-                background: brand.colors.primary,
-                opacity: isOpen ? 1 : 1
-              }}
-            />
-            <span 
-              className={`block h-0.5 w-full transition-opacity duration-300 ${
-                isOpen ? 'opacity-0' : ''
-              }`}
-              style={{ background: brand.colors.primary }}
-            />
-            <span 
-              className={`block h-0.5 w-full transition-all duration-300 ${
-                isOpen ? '-rotate-45 -translate-y-2' : ''
-              }`}
-              style={{ 
-                background: brand.colors.primary,
-                opacity: isOpen ? 1 : 1
-              }}
-            />
-          </div>
-        </button>
+        {/* Right Side - Notification Bell + Hamburger Button */}
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          
+          <button
+            onClick={toggleMenu}
+            className="p-2 rounded-lg transition hover:bg-opacity-20"
+            style={{ 
+              background: isOpen ? brand.colors.creamSoft : 'transparent',
+            }}
+          >
+            <div className="w-6 h-5 flex flex-col justify-between">
+              <span 
+                className={`block h-0.5 w-full transition-all duration-300 ${
+                  isOpen ? 'rotate-45 translate-y-2' : ''
+                }`}
+                style={{ 
+                  background: brand.colors.primary,
+                  opacity: isOpen ? 1 : 1
+                }}
+              />
+              <span 
+                className={`block h-0.5 w-full transition-opacity duration-300 ${
+                  isOpen ? 'opacity-0' : ''
+                }`}
+                style={{ background: brand.colors.primary }}
+              />
+              <span 
+                className={`block h-0.5 w-full transition-all duration-300 ${
+                  isOpen ? '-rotate-45 -translate-y-2' : ''
+                }`}
+                style={{ 
+                  background: brand.colors.primary,
+                  opacity: isOpen ? 1 : 1
+                }}
+              />
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Spacer */}
