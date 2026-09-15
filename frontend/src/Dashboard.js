@@ -5,7 +5,6 @@ import api from './services/api';
 import { brand } from './brand';
 import PortfolioChart from './PortfolioChart';
 
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -16,6 +15,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showBalance, setShowBalance] = useState(true);
+  const [snapshotTrigger, setSnapshotTrigger] = useState(0);
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
@@ -24,7 +24,13 @@ const Dashboard = () => {
       return;
     }
     setUser(currentUser);
-    fetchAllData();
+
+    // Create daily snapshot FIRST, then fetch data
+    const init = async () => {
+      await createDailySnapshot();
+      await fetchAllData();
+    };
+    init();
 
     // Auto-refresh balance + prices every 60 seconds
     const interval = setInterval(() => {
@@ -33,6 +39,26 @@ const Dashboard = () => {
 
     return () => clearInterval(interval);
   }, [navigate]);
+
+  const createDailySnapshot = async () => {
+    try {
+      const lastSnapshot = localStorage.getItem('lastSnapshotDate');
+      const today = new Date().toDateString();
+
+      if (lastSnapshot === today) {
+        return;
+      }
+
+      await api.post('/portfolio/snapshot');
+
+      localStorage.setItem('lastSnapshotDate', today);
+      setSnapshotTrigger(prev => prev + 1);
+      
+      console.log('📸 Daily portfolio snapshot created');
+    } catch (error) {
+      console.error('Snapshot error:', error);
+    }
+  };
 
   const fetchAllData = async () => {
     try {
@@ -77,7 +103,6 @@ const Dashboard = () => {
       );
       const data = await response.json();
       
-      // Store prices for balance calculation
       setCryptoPrices({
         BTC: data.bitcoin?.usd || 0,
         ETH: data.ethereum?.usd || 0,
@@ -98,7 +123,6 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Market data error:', error);
       
-      // Fallback prices
       setCryptoPrices({
         BTC: 65432,
         ETH: 3456,
@@ -133,7 +157,6 @@ const Dashboard = () => {
     }
   };
 
-  // Calculate total balance in USD (fiat + crypto at current prices)
   const calculateTotalBalance = () => {
     const fiat = balance?.fiatBalance || 0;
     
@@ -232,11 +255,10 @@ const Dashboard = () => {
             ))}
           </div>
 
- {/* Portfolio Chart */}
+          {/* Portfolio Chart */}
           <div className="mb-6">
-            <PortfolioChart />
+            <PortfolioChart key={snapshotTrigger} />
           </div>
-
 
           {/* Asset Breakdown */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
