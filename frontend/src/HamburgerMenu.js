@@ -12,6 +12,7 @@ const HamburgerMenu = () => {
     { path: '/dashboard', icon: '🏠', label: 'Dashboard' },
     { path: '/deposit', icon: '💳', label: 'Deposit' },
     { path: '/withdraw', icon: '🏦', label: 'Withdraw' },
+    { path: '/swap', icon: '🔄', label: 'Swap' },
     { path: '/transactions', icon: '📊', label: 'Transactions' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
   ];

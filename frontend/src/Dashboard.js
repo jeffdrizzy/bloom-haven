@@ -165,27 +165,26 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Quick Actions */}
-         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
-  {[
-    { path: '/deposit', icon: '💳', label: 'Deposit', sub: 'Add funds' },
-    { path: '/withdraw', icon: '🏦', label: 'Withdraw', sub: 'Withdraw funds' },
-    { path: '/transactions', icon: '📊', label: 'History', sub: 'View transactions' },
-    { path: '/profile', icon: '⚙️', label: 'Profile', sub: 'Manage account' },
-{ path: '/swap', icon: '🔄', label: 'Swap', sub: 'Exchange currencies' },
-  ].map((item) => (
-    <button
-      key={item.path}
-      onClick={() => navigate(item.path)}
-      className="rounded-xl shadow-lg p-3 sm:p-4 hover:shadow-xl transition text-center cursor-pointer"
-      style={{ background: brand.colors.surface }}
-    >
-      <div className="text-2xl sm:text-3xl mb-1">{item.icon}</div>
-      <h3 className="font-semibold text-sm sm:text-base" style={{ color: brand.colors.text }}>{item.label}</h3>
-      <p className="text-xs sm:text-sm" style={{ color: brand.colors.textMuted }}>{item.sub}</p>
-    </button>
-  ))}
-</div>
+          {/* Quick Actions - Removed Profile */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            {[
+              { path: '/deposit', icon: '💳', label: 'Deposit', sub: 'Add funds' },
+              { path: '/withdraw', icon: '🏦', label: 'Withdraw', sub: 'Withdraw funds' },
+              { path: '/swap', icon: '🔄', label: 'Swap', sub: 'Exchange currencies' },
+              { path: '/transactions', icon: '📊', label: 'History', sub: 'View transactions' },
+            ].map((item) => (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className="rounded-xl shadow-lg p-3 sm:p-4 hover:shadow-xl transition text-center cursor-pointer"
+                style={{ background: brand.colors.surface }}
+              >
+                <div className="text-2xl sm:text-3xl mb-1">{item.icon}</div>
+                <h3 className="font-semibold text-sm sm:text-base" style={{ color: brand.colors.text }}>{item.label}</h3>
+                <p className="text-xs sm:text-sm" style={{ color: brand.colors.textMuted }}>{item.sub}</p>
+              </button>
+            ))}
+          </div>
 
           {/* Asset Breakdown */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
@@ -250,7 +249,8 @@ const Dashboard = () => {
                 {recentTransactions.map((tx) => {
                   const isDeposit = tx.type === 'deposit' || tx.depositType;
                   const isWithdraw = tx.type === 'withdraw' || tx.withdrawType;
-                  const icon = isDeposit ? '💰' : isWithdraw ? '🏦' : '🔄';
+                  const isSwap = tx.type === 'swap';
+                  const icon = isDeposit ? '💰' : isWithdraw ? '🏦' : isSwap ? '🔄' : '📝';
                   const amount = tx.amount || 0;
                   const currency = tx.currency || 'USD';
                   const status = tx.status || 'pending';
@@ -262,7 +262,7 @@ const Dashboard = () => {
                         <div className="text-xl sm:text-2xl">{icon}</div>
                         <div>
                           <p className="font-medium text-sm sm:text-base" style={{ color: brand.colors.text }}>
-                            {isDeposit ? 'Deposit' : isWithdraw ? 'Withdrawal' : 'Transaction'}
+                            {isDeposit ? 'Deposit' : isWithdraw ? 'Withdrawal' : isSwap ? 'Swap' : 'Transaction'}
                           </p>
                           <p className="text-xs sm:text-sm" style={{ color: brand.colors.textMuted }}>
                             {date.toLocaleDateString()} at {date.toLocaleTimeString()}
@@ -270,8 +270,8 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                        <p className={`font-semibold text-sm sm:text-base ${isDeposit ? 'text-green-600' : isWithdraw ? 'text-red-600' : ''}`}>
-                          {isDeposit ? '+' : isWithdraw ? '-' : ''}{showBalance ? amount : '••••'} {currency}
+                        <p className={`font-semibold text-sm sm:text-base ${isDeposit ? 'text-green-600' : isWithdraw ? 'text-red-600' : isSwap ? 'text-blue-600' : ''}`}>
+                          {isDeposit ? '+' : isWithdraw ? '-' : isSwap ? '⇄ ' : ''}{showBalance ? amount : '••••'} {currency}
                         </p>
                         <span className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getStatusColor(status)}`}>
                           {status.toUpperCase()}
