@@ -98,28 +98,28 @@ const Dashboard = () => {
 
   const fetchMarketData = async () => {
     try {
-      const response = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb,solana,cardano&vs_currencies=usd&include_24hr_change=true'
-      );
+     const response = await fetch(
+  'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,binancecoin,solana,cardano&vs_currencies=usd&include_24hr_change=true'
+);
       const data = await response.json();
       
       setCryptoPrices({
         BTC: data.bitcoin?.usd || 0,
         ETH: data.ethereum?.usd || 0,
         USDT: data.tether?.usd || 1,
-        BNB: data.bnb?.usd || 0,
+        BNB: data.binancecoin?.usd || 0,
         SOL: data.solana?.usd || 0,
         ADA: data.cardano?.usd || 0,
       });
 
-      return [
-        { name: 'Bitcoin', symbol: 'BTC', price: data.bitcoin?.usd || 0, change: data.bitcoin?.usd_24h_change || 0 },
-        { name: 'Ethereum', symbol: 'ETH', price: data.ethereum?.usd || 0, change: data.ethereum?.usd_24h_change || 0 },
-        { name: 'Tether', symbol: 'USDT', price: data.tether?.usd || 1, change: data.tether?.usd_24h_change || 0 },
-        { name: 'BNB', symbol: 'BNB', price: data.bnb?.usd || 0, change: data.bnb?.usd_24h_change || 0 },
-        { name: 'Solana', symbol: 'SOL', price: data.solana?.usd || 0, change: data.solana?.usd_24h_change || 0 },
-        { name: 'Cardano', symbol: 'ADA', price: data.cardano?.usd || 0, change: data.cardano?.usd_24h_change || 0 },
-      ];
+     return [
+  { name: 'Bitcoin', symbol: 'BTC', price: data.bitcoin?.usd || 0, change: data.bitcoin?.usd_24h_change || 0 },
+  { name: 'Ethereum', symbol: 'ETH', price: data.ethereum?.usd || 0, change: data.ethereum?.usd_24h_change || 0 },
+  { name: 'Tether', symbol: 'USDT', price: data.tether?.usd || 1, change: data.tether?.usd_24h_change || 0 },
+  { name: 'BNB', symbol: 'BNB', price: data.binancecoin?.usd || 0, change: data.binancecoin?.usd_24h_change || 0 },  // <-- FIXED
+  { name: 'Solana', symbol: 'SOL', price: data.solana?.usd || 0, change: data.solana?.usd_24h_change || 0 },
+  { name: 'Cardano', symbol: 'ADA', price: data.cardano?.usd || 0, change: data.cardano?.usd_24h_change || 0 },
+];
     } catch (error) {
       console.error('Market data error:', error);
       

@@ -78,7 +78,7 @@ const createPortfolioSnapshot = async (userId) => {
     let rates = { BTC: 65432, ETH: 3456, USDT: 1, BNB: 587 };
     try {
       const response = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,binancecoin&vs_currencies=usd'
       );
       const data = await response.json();
       rates = {
@@ -1517,7 +1517,7 @@ app.get('/api/swap/rates', async (req, res) => {
       BTC: data.bitcoin?.usd || 0,
       ETH: data.ethereum?.usd || 0,
       USDT: data.tether?.usd || 1,
-      BNB: data.bnb?.usd || 0,
+BNB: data.binancecoin?.usd || 0,
     };
     
     res.json(rates);
