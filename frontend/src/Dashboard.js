@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from './services/api';
 import api from './services/api';
 import { brand } from './brand';
+import PortfolioChart from './PortfolioChart';
+
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -229,6 +231,12 @@ const Dashboard = () => {
               </button>
             ))}
           </div>
+
+ {/* Portfolio Chart */}
+          <div className="mb-6">
+            <PortfolioChart />
+          </div>
+
 
           {/* Asset Breakdown */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
