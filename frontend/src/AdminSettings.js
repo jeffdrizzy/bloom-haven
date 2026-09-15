@@ -14,6 +14,8 @@ const AdminSettings = () => {
     maintenanceMode: false,
     siteName: 'Bloom Haven',
     siteTagline: 'Where Your Wealth Blossoms',
+    swapFee: 0.5,
+    withdrawFee: 1,
     cryptoAddresses: {
       BTC: '',
       ETH: '',
@@ -31,7 +33,6 @@ const AdminSettings = () => {
       const response = await api.get('/settings');
       const data = response.data;
       
-      // Extract crypto addresses
       const cryptoAddresses = {};
       const cryptos = ['BTC', 'ETH', 'USDT', 'BNB'];
       cryptos.forEach(crypto => {
@@ -42,6 +43,8 @@ const AdminSettings = () => {
         maintenanceMode: data.maintenanceMode || false,
         siteName: data.siteName || 'Bloom Haven',
         siteTagline: data.siteTagline || 'Where Your Wealth Blossoms',
+        swapFee: data.swapFee !== undefined ? data.swapFee : 0.5,
+        withdrawFee: data.withdrawFee !== undefined ? data.withdrawFee : 1,
         cryptoAddresses: cryptoAddresses,
       });
     } catch (error) {
@@ -62,12 +65,14 @@ const AdminSettings = () => {
         maintenanceMode: settings.maintenanceMode,
         siteName: settings.siteName,
         siteTagline: settings.siteTagline,
+        swapFee: parseFloat(settings.swapFee),
+        withdrawFee: parseFloat(settings.withdrawFee),
         cryptoAddresses: settings.cryptoAddresses,
       });
       setSuccess('Settings updated successfully!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
-      setError('Failed to update settings');
+      setError(error.response?.data?.message || 'Failed to update settings');
     } finally {
       setUpdating(false);
     }
@@ -208,6 +213,93 @@ const AdminSettings = () => {
                   (Users will see a maintenance page)
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Transaction Fees */}
+          <div className="rounded-2xl shadow-lg p-6" style={{ 
+            background: brand.colors.surface,
+            border: `1px solid ${brand.colors.primarySoft}`
+          }}>
+            <h2 className="text-xl font-semibold mb-4" style={{ color: brand.colors.text }}>💰 Transaction Fees</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-medium mb-1" style={{ color: brand.colors.text }}>
+                  Swap Fee (%)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={settings.swapFee}
+                    onChange={(e) => setSettings({ ...settings, swapFee: e.target.value })}
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
+                    style={{
+                      border: `2px solid ${brand.colors.primarySoft}`,
+                      background: brand.colors.background,
+                      color: brand.colors.text,
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = brand.colors.primary;
+                      e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = brand.colors.primarySoft;
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                  <span className="absolute right-4 top-2 font-medium" style={{ color: brand.colors.textMuted }}>%</span>
+                </div>
+                <p className="text-xs mt-1" style={{ color: brand.colors.textMuted }}>
+                  Fee charged on each swap (default: 0.5%)
+                </p>
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1" style={{ color: brand.colors.text }}>
+                  Withdrawal Fee (%)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={settings.withdrawFee}
+                    onChange={(e) => setSettings({ ...settings, withdrawFee: e.target.value })}
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
+                    style={{
+                      border: `2px solid ${brand.colors.primarySoft}`,
+                      background: brand.colors.background,
+                      color: brand.colors.text,
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = brand.colors.primary;
+                      e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = brand.colors.primarySoft;
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                  <span className="absolute right-4 top-2 font-medium" style={{ color: brand.colors.textMuted }}>%</span>
+                </div>
+                <p className="text-xs mt-1" style={{ color: brand.colors.textMuted }}>
+                  Fee charged on each withdrawal (default: 1%)
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 p-3 rounded-lg" style={{
+              background: brand.colors.creamSoft,
+              border: `1px solid ${brand.colors.primarySoft}`
+            }}>
+              <p className="text-sm" style={{ color: brand.colors.text }}>
+                💡 <strong>Example:</strong> Swapping $100 with {settings.swapFee}% fee = ${(100 * settings.swapFee / 100).toFixed(2)} fee
+              </p>
             </div>
           </div>
 
