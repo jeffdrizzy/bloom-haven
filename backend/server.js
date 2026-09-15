@@ -76,7 +76,6 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    // Generate unique referral code for new user
     const generateReferralCode = () => {
       return 'BH' + Math.random().toString(36).substring(2, 8).toUpperCase();
     };
@@ -88,7 +87,6 @@ app.post('/api/register', async (req, res) => {
       codeExists = await User.findOne({ referralCode: newReferralCode });
     }
 
-    // Check if user was referred
     let referrer = null;
     if (referralCode) {
       referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
@@ -105,7 +103,6 @@ app.post('/api/register', async (req, res) => {
 
     await user.save();
 
-    // Apply referral bonus ($5 to both)
     if (referrer) {
       referrer.referralCount += 1;
       referrer.referralEarnings += 5;
@@ -230,7 +227,6 @@ app.post('/api/admin/login', async (req, res) => {
 
 // ============ PROTECTED ROUTES ============
 
-// Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -248,7 +244,6 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
-// Middleware to check if user is admin
 const isAdmin = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -392,7 +387,6 @@ app.post('/api/verify-pin', authenticateToken, async (req, res) => {
 
 // ============ REFERRAL ROUTES ============
 
-// Get referral info (with auto-generation)
 app.get('/api/referrals', authenticateToken, async (req, res) => {
   try {
     let user = await User.findById(req.user.userId).select(
@@ -403,7 +397,6 @@ app.get('/api/referrals', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Auto-generate referral code if missing
     if (!user.referralCode) {
       const generateReferralCode = () => {
         return 'BH' + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -420,7 +413,6 @@ app.get('/api/referrals', authenticateToken, async (req, res) => {
       await user.save();
     }
 
-    // Get referred users
     const referredUsers = await User.find({ referredBy: req.user.userId })
       .select('fullName email createdAt isApproved')
       .sort({ createdAt: -1 });
@@ -443,7 +435,6 @@ app.get('/api/referrals', authenticateToken, async (req, res) => {
   }
 });
 
-// Apply referral bonus (admin can manually trigger)
 app.post('/api/referrals/apply', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId);
@@ -484,7 +475,6 @@ app.post('/api/referrals/apply', authenticateToken, async (req, res) => {
 
 // ============ ADMIN ROUTES ============
 
-// Get all users
 app.get('/api/users', async (req, res) => {
   try {
     const users = await User.find().select('-password');
@@ -494,7 +484,6 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-// Approve user
 app.put('/api/admin/users/:userId/approve', authenticateToken, isAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -511,7 +500,6 @@ app.put('/api/admin/users/:userId/approve', authenticateToken, isAdmin, async (r
   }
 });
 
-// Freeze user
 app.put('/api/admin/users/:userId/freeze', authenticateToken, isAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -528,7 +516,6 @@ app.put('/api/admin/users/:userId/freeze', authenticateToken, isAdmin, async (re
   }
 });
 
-// Unfreeze user
 app.put('/api/admin/users/:userId/unfreeze', authenticateToken, isAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -545,7 +532,6 @@ app.put('/api/admin/users/:userId/unfreeze', authenticateToken, isAdmin, async (
   }
 });
 
-// Blacklist user
 app.put('/api/admin/users/:userId/blacklist', authenticateToken, isAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -562,7 +548,6 @@ app.put('/api/admin/users/:userId/blacklist', authenticateToken, isAdmin, async 
   }
 });
 
-// Unblacklist user
 app.put('/api/admin/users/:userId/unblacklist', authenticateToken, isAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -579,7 +564,6 @@ app.put('/api/admin/users/:userId/unblacklist', authenticateToken, isAdmin, asyn
   }
 });
 
-// Add balance to user
 app.post('/api/admin/users/:userId/balance', authenticateToken, isAdmin, async (req, res) => {
   try {
     const { amount } = req.body;
@@ -604,7 +588,6 @@ app.post('/api/admin/users/:userId/balance', authenticateToken, isAdmin, async (
   }
 });
 
-// Set withdrawal PIN (admin only)
 app.put('/api/admin/users/:userId/set-pin', authenticateToken, isAdmin, async (req, res) => {
   try {
     const { pin } = req.body;
@@ -644,7 +627,6 @@ const generateReference = () => {
   return 'BLM-' + Date.now() + '-' + crypto.randomBytes(4).toString('hex').toUpperCase();
 };
 
-// Submit deposit (user)
 app.post('/api/deposit/submit', authenticateToken, upload.single('proofImage'), async (req, res) => {
   try {
     const { depositType, currency, amount, transactionId, description, giftcardType, giftcardCountry } = req.body;
@@ -705,7 +687,6 @@ app.post('/api/deposit/submit', authenticateToken, upload.single('proofImage'), 
   }
 });
 
-// Get user's deposits
 app.get('/api/deposits', authenticateToken, async (req, res) => {
   try {
     const deposits = await Deposit.find({ userId: req.user.userId })
@@ -717,7 +698,6 @@ app.get('/api/deposits', authenticateToken, async (req, res) => {
   }
 });
 
-// Get deposit addresses (public)
 app.get('/api/deposit/addresses', async (req, res) => {
   try {
     const settings = await SystemSetting.find();
@@ -734,7 +714,7 @@ app.get('/api/deposit/addresses', async (req, res) => {
   }
 });
 
-// ============ WITHDRAW ROUTES ============
+// ============ WITHDRAW ROUTES (with fee) ============
 
 app.post('/api/withdraw', authenticateToken, async (req, res) => {
   try {
@@ -748,6 +728,14 @@ app.post('/api/withdraw', authenticateToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+
+    // Get withdraw fee
+    let withdrawFeePercent = 1;
+    const feeSetting = await SystemSetting.findOne({ key: 'withdrawFee' });
+    if (feeSetting) withdrawFeePercent = feeSetting.value;
+
+    const feeAmount = (amount * withdrawFeePercent) / 100;
+    const netAmount = amount - feeAmount;
 
     if (withdrawType === 'fiat') {
       if (user.fiatBalance < amount) {
@@ -770,6 +758,11 @@ app.post('/api/withdraw', authenticateToken, async (req, res) => {
       accountNumber: accountNumber || '',
       description: description || '',
       status: 'pending',
+      metadata: {
+        fee: feeAmount,
+        feePercent: withdrawFeePercent,
+        netAmount: netAmount,
+      },
     });
 
     await withdraw.save();
@@ -786,12 +779,15 @@ app.post('/api/withdraw', authenticateToken, async (req, res) => {
     });
 
     res.status(201).json({
-      message: 'Withdrawal request submitted successfully! Waiting for admin approval.',
+      message: `Withdrawal request submitted! You will receive ${netAmount.toFixed(6)} ${currency} after a $${feeAmount.toFixed(2)} fee.`,
       withdraw: {
         id: withdraw._id,
         amount: withdraw.amount,
         currency: withdraw.currency,
         status: withdraw.status,
+        fee: feeAmount.toFixed(2),
+        feePercent: withdrawFeePercent,
+        netAmount: netAmount.toFixed(6),
         createdAt: withdraw.createdAt,
       },
     });
@@ -1050,7 +1046,7 @@ app.put('/api/admin/withdrawals/:withdrawId/reject', authenticateToken, isAdmin,
   }
 });
 
-// ============ SYSTEM SETTINGS ROUTES ============
+// ============ SYSTEM SETTINGS ROUTES (with fees) ============
 
 app.get('/api/settings', async (req, res) => {
   try {
@@ -1063,6 +1059,8 @@ app.get('/api/settings', async (req, res) => {
     if (!settingsObj.maintenanceMode) settingsObj.maintenanceMode = false;
     if (!settingsObj.siteName) settingsObj.siteName = 'Bloom Haven';
     if (!settingsObj.siteTagline) settingsObj.siteTagline = 'Where Your Wealth Blossoms';
+    if (settingsObj.swapFee === undefined) settingsObj.swapFee = 0.5;
+    if (settingsObj.withdrawFee === undefined) settingsObj.withdrawFee = 1;
     
     res.json(settingsObj);
   } catch (error) {
@@ -1073,7 +1071,7 @@ app.get('/api/settings', async (req, res) => {
 
 app.put('/api/admin/settings', authenticateToken, isAdmin, async (req, res) => {
   try {
-    const { maintenanceMode, siteName, siteTagline, cryptoAddresses } = req.body;
+    const { maintenanceMode, siteName, siteTagline, cryptoAddresses, swapFee, withdrawFee } = req.body;
     
     if (maintenanceMode !== undefined) {
       await SystemSetting.findOneAndUpdate(
@@ -1095,6 +1093,22 @@ app.put('/api/admin/settings', authenticateToken, isAdmin, async (req, res) => {
       await SystemSetting.findOneAndUpdate(
         { key: 'siteTagline' },
         { key: 'siteTagline', value: siteTagline, updatedAt: new Date() },
+        { upsert: true, returnDocument: 'after' }
+      );
+    }
+
+    if (swapFee !== undefined) {
+      await SystemSetting.findOneAndUpdate(
+        { key: 'swapFee' },
+        { key: 'swapFee', value: swapFee, updatedAt: new Date() },
+        { upsert: true, returnDocument: 'after' }
+      );
+    }
+
+    if (withdrawFee !== undefined) {
+      await SystemSetting.findOneAndUpdate(
+        { key: 'withdrawFee' },
+        { key: 'withdrawFee', value: withdrawFee, updatedAt: new Date() },
         { upsert: true, returnDocument: 'after' }
       );
     }
@@ -1152,6 +1166,7 @@ app.get('/api/transactions', authenticateToken, async (req, res) => {
         status: w.status,
         createdAt: w.createdAt,
         withdrawType: w.withdrawType,
+        metadata: w.metadata,
       });
     });
 
@@ -1302,7 +1317,7 @@ app.post('/api/kyc/submit', authenticateToken, upload.single('governmentId'), as
   }
 });
 
-// ============ SWAP ROUTE ============
+// ============ SWAP ROUTE (with fee) ============
 
 app.get('/api/swap/rates', async (req, res) => {
   try {
@@ -1344,6 +1359,11 @@ app.post('/api/swap', authenticateToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+
+    // Get swap fee
+    let swapFeePercent = 0.5;
+    const feeSetting = await SystemSetting.findOne({ key: 'swapFee' });
+    if (feeSetting) swapFeePercent = feeSetting.value;
     
     const ratesResponse = await fetch(
       'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
@@ -1376,15 +1396,20 @@ app.post('/api/swap', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'Invalid currency selected' });
     }
     
+    // Calculate amounts with fee
     const usdValue = amount * fromRate;
-    const toAmount = usdValue / toRate;
+    const feeAmount = (usdValue * swapFeePercent) / 100;
+    const netUsdValue = usdValue - feeAmount;
+    const toAmount = netUsdValue / toRate;
     
+    // Deduct from source
     if (fromCurrency === 'USD') {
       user.fiatBalance -= amount;
     } else {
       user.cryptoBalances[fromCurrency] -= amount;
     }
     
+    // Add to destination
     if (toCurrency === 'USD') {
       user.fiatBalance += toAmount;
     } else {
@@ -1400,13 +1425,15 @@ app.post('/api/swap', authenticateToken, async (req, res) => {
       currency: toCurrency,
       amount: toAmount,
       status: 'completed',
-      description: `Swapped ${amount} ${fromCurrency} to ${toAmount.toFixed(6)} ${toCurrency}`,
+      description: `Swapped ${amount} ${fromCurrency} to ${toAmount.toFixed(6)} ${toCurrency} (Fee: $${feeAmount.toFixed(2)})`,
       metadata: {
         fromCurrency,
         toCurrency,
         fromAmount: amount,
         toAmount: toAmount,
         rate: toRate / fromRate,
+        fee: feeAmount,
+        feePercent: swapFeePercent,
       },
     });
     await transaction.save();
@@ -1428,6 +1455,8 @@ app.post('/api/swap', authenticateToken, async (req, res) => {
         fromAmount: amount,
         toAmount: toAmount.toFixed(6),
         rate: (toRate / fromRate).toFixed(6),
+        fee: feeAmount.toFixed(2),
+        feePercent: swapFeePercent,
       },
       newBalance: {
         fiatBalance: user.fiatBalance,
@@ -1519,7 +1548,6 @@ app.post('/api/migrate-users', async (req, res) => {
         needsUpdate = true;
       }
       
-      // Add referral fields if missing
       if (!user.referralCode) {
         const generateReferralCode = () => {
           return 'BH' + Math.random().toString(36).substring(2, 8).toUpperCase();
