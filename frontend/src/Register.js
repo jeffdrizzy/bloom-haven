@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from './services/api';
 import { brand } from './brand';
@@ -10,10 +10,20 @@ const Register = () => {
     email: '',
     password: '',
     phone: '',
+    referralCode: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Auto-fill referral code from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref');
+    if (refCode) {
+      setFormData(prev => ({ ...prev, referralCode: refCode.toUpperCase() }));
+    }
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -33,7 +43,7 @@ const Register = () => {
       setSuccess(response.message);
       setTimeout(() => {
         navigate('/login');
-      }, 2000);
+      }, 3000);
     } catch (error) {
       setError(error.message || 'Registration failed. Please try again.');
     } finally {
@@ -193,6 +203,37 @@ const Register = () => {
               }}
               placeholder="1234567890"
             />
+          </div>
+
+          {/* Referral Code Field */}
+          <div>
+            <label className="block font-medium mb-2" style={{ color: brand.colors.text }}>
+              Referral Code (Optional)
+            </label>
+            <input
+              type="text"
+              name="referralCode"
+              value={formData.referralCode}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 transition uppercase"
+              style={{
+                border: `2px solid ${brand.colors.primarySoft}`,
+                backgroundColor: brand.colors.background,
+                color: brand.colors.text,
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = brand.colors.primary;
+                e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = brand.colors.primarySoft;
+                e.target.style.boxShadow = 'none';
+              }}
+              placeholder="e.g., BHABC123"
+            />
+            <p className="text-xs mt-1" style={{ color: brand.colors.textMuted }}>
+              Got a referral code? Enter it to get $5 bonus! 🎁
+            </p>
           </div>
 
           <button
