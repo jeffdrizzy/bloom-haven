@@ -54,6 +54,29 @@ const UserSchema = new mongoose.Schema({
     USDT: { type: Number, default: 0 },
     BNB: { type: Number, default: 0 },
   },
+  // ============ REFERRAL FIELDS ============
+  referralCode: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  referredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  referralEarnings: {
+    type: Number,
+    default: 0,
+  },
+  referralCount: {
+    type: Number,
+    default: 0,
+  },
+  referralBonusApplied: {
+    type: Boolean,
+    default: false,
+  },
+  // ============ END REFERRAL FIELDS ============
   // ============ NEW FIELDS ============
   address: {
     street: { type: String, trim: true, default: '' },
