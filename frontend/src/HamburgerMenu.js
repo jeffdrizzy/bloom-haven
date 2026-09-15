@@ -14,6 +14,7 @@ const HamburgerMenu = () => {
     { path: '/withdraw', icon: '🏦', label: 'Withdraw' },
     { path: '/swap', icon: '🔄', label: 'Swap' },
     { path: '/transactions', icon: '📊', label: 'Transactions' },
+    { path: '/referral', icon: '🎁', label: 'Refer & Earn' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
   ];
 
