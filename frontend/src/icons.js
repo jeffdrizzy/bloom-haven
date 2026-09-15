@@ -64,6 +64,8 @@ import {
   Play,
   Gamepad2,
   Film,
+LineChart,
+  BarChart3,
 } from 'lucide-react';
 
 export {
@@ -129,6 +131,8 @@ export {
   Play,
   Gamepad2,
   Film,
+LineChart,
+  BarChart3,
 };
 
 // Crypto currency icon map

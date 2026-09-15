@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from './services/api';
 import { brand } from './brand';
+import {
+  TrendingUp,
+  TrendingDown,
+  LineChart,
+  BarChart3,
+  Loader2,
+} from './icons';
 
 const PortfolioChart = () => {
   const [history, setHistory] = useState([]);
@@ -33,11 +40,10 @@ const PortfolioChart = () => {
     { label: '1Y', value: 365 },
   ];
 
-  // Calculate chart data
   const getChartData = () => {
     if (history.length === 0) return null;
 
-    const values = history.map(h => h.totalBalance);
+    const values = history.map((h) => h.totalBalance);
     const maxValue = Math.max(...values);
     const minValue = Math.min(...values);
     const rangeValue = maxValue - minValue || 1;
@@ -47,11 +53,15 @@ const PortfolioChart = () => {
     const padding = 20;
 
     const points = history.map((item, index) => {
-      const x = history.length === 1 
-        ? width / 2 
-        : padding + (index / (history.length - 1)) * (width - padding * 2);
-      
-      const y = height - padding - ((item.totalBalance - minValue) / rangeValue) * (height - padding * 2);
+      const x =
+        history.length === 1
+          ? width / 2
+          : padding + (index / (history.length - 1)) * (width - padding * 2);
+
+      const y =
+        height -
+        padding -
+        ((item.totalBalance - minValue) / rangeValue) * (height - padding * 2);
 
       return {
         x,
@@ -61,10 +71,7 @@ const PortfolioChart = () => {
       };
     });
 
-    // Create path
     const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-
-    // Create area path
     const areaPath = `${path} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
 
     return {
@@ -81,10 +88,9 @@ const PortfolioChart = () => {
 
   const chartData = getChartData();
 
-  // Calculate change percentage
   const getChange = () => {
     if (history.length < 2) return { value: 0, percent: 0, positive: true };
-    
+
     const first = history[0].totalBalance;
     const last = history[history.length - 1].totalBalance;
     const change = last - first;
@@ -98,16 +104,17 @@ const PortfolioChart = () => {
   };
 
   const change = getChange();
-
-  const currentBalance = history.length > 0 
-    ? history[history.length - 1].totalBalance 
-    : 0;
+  const currentBalance = history.length > 0 ? history[history.length - 1].totalBalance : 0;
 
   if (loading) {
     return (
       <div className="rounded-2xl shadow-lg p-4 sm:p-6" style={{ background: brand.colors.surface }}>
         <div className="text-center py-12">
-          <div className="text-4xl mb-4">📈</div>
+          <Loader2
+            size={40}
+            className="animate-spin mx-auto mb-4"
+            style={{ color: brand.colors.primary }}
+          />
           <p style={{ color: brand.colors.textLight }}>Loading chart...</p>
         </div>
       </div>
@@ -119,18 +126,26 @@ const PortfolioChart = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
         <div>
-          <h3 className="font-semibold text-base sm:text-lg" style={{ color: brand.colors.text }}>
-            📈 Portfolio Value
+          <h3
+            className="font-semibold text-base sm:text-lg flex items-center gap-2"
+            style={{ color: brand.colors.text }}
+          >
+            <LineChart size={20} strokeWidth={2} style={{ color: brand.colors.primary }} />
+            Portfolio Value
           </h3>
           <p className="text-2xl font-bold mt-1" style={{ color: brand.colors.text }}>
             ${currentBalance.toFixed(2)}
           </p>
           {history.length > 1 && (
-            <p 
-              className="text-sm font-medium mt-1"
-              style={{ color: change.positive ? brand.colors.success : brand.colors.error }}
+            <p
+              className="text-sm font-medium mt-1 flex items-center gap-1"
+              style={{
+                color: change.positive ? brand.colors.success : brand.colors.error,
+              }}
             >
-              {change.positive ? '▲' : '▼'} ${Math.abs(change.value).toFixed(2)} ({change.positive ? '+' : ''}{change.percent.toFixed(2)}%)
+              {change.positive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+              ${Math.abs(change.value).toFixed(2)} ({change.positive ? '+' : ''}
+              {change.percent.toFixed(2)}%)
             </p>
           )}
         </div>
@@ -154,19 +169,29 @@ const PortfolioChart = () => {
       </div>
 
       {error && (
-        <div className="border-l-4 px-4 py-3 rounded-lg mb-4 text-sm" style={{
-          backgroundColor: '#FDF2F2',
-          borderColor: brand.colors.error,
-          color: brand.colors.error
-        }}>
+        <div
+          className="border-l-4 px-4 py-3 rounded-lg mb-4 text-sm"
+          style={{
+            backgroundColor: '#FDF2F2',
+            borderColor: brand.colors.error,
+            color: brand.colors.error,
+          }}
+        >
           {error}
         </div>
       )}
 
       {/* Chart */}
       {history.length === 0 || !chartData ? (
-        <div className="text-center py-12 rounded-xl" style={{ background: brand.colors.surfaceAlt }}>
-          <div className="text-4xl mb-2">📊</div>
+        <div
+          className="text-center py-12 rounded-xl"
+          style={{ background: brand.colors.surfaceAlt }}
+        >
+          <BarChart3
+            size={48}
+            strokeWidth={1.5}
+            style={{ color: brand.colors.textMuted, margin: '0 auto 12px' }}
+          />
           <p className="text-sm" style={{ color: brand.colors.textMuted }}>
             Not enough data yet
           </p>
@@ -176,8 +201,8 @@ const PortfolioChart = () => {
         </div>
       ) : (
         <div className="relative">
-          <svg 
-            viewBox={`0 0 ${chartData.width} ${chartData.height}`} 
+          <svg
+            viewBox={`0 0 ${chartData.width} ${chartData.height}`}
             className="w-full"
             style={{ height: 'auto', maxHeight: '250px' }}
           >
@@ -206,10 +231,7 @@ const PortfolioChart = () => {
             })}
 
             {/* Area fill */}
-            <path
-              d={chartData.areaPath}
-              fill="url(#portfolioGradient)"
-            />
+            <path d={chartData.areaPath} fill="url(#portfolioGradient)" />
 
             {/* Line */}
             <path
@@ -241,9 +263,9 @@ const PortfolioChart = () => {
 
           {/* Hover tooltip */}
           {hoveredPoint !== null && chartData.points[hoveredPoint] && (
-            <div 
+            <div
               className="absolute px-3 py-2 rounded-lg shadow-lg pointer-events-none z-10"
-              style={{ 
+              style={{
                 background: brand.colors.text,
                 color: 'white',
                 top: '10px',
@@ -265,7 +287,9 @@ const PortfolioChart = () => {
               {history.length > 0 ? new Date(history[0].snapshotDate).toLocaleDateString() : ''}
             </span>
             <span className="text-xs" style={{ color: brand.colors.textMuted }}>
-              {history.length > 0 ? new Date(history[history.length - 1].snapshotDate).toLocaleDateString() : ''}
+              {history.length > 0
+                ? new Date(history[history.length - 1].snapshotDate).toLocaleDateString()
+                : ''}
             </span>
           </div>
         </div>
