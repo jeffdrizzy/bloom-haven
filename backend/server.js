@@ -66,14 +66,32 @@ app.get('/api', (req, res) => {
 
 // ============ AUTH ROUTES ============
 
-// Register
+// Register (with referral support)
 app.post('/api/register', async (req, res) => {
   try {
-    const { fullName, email, password, phone } = req.body;
+    const { fullName, email, password, phone, referralCode } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    // Generate unique referral code for new user
+    const generateReferralCode = () => {
+      return 'BH' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    };
+
+    let newReferralCode = generateReferralCode();
+    let codeExists = await User.findOne({ referralCode: newReferralCode });
+    while (codeExists) {
+      newReferralCode = generateReferralCode();
+      codeExists = await User.findOne({ referralCode: newReferralCode });
+    }
+
+    // Check if user was referred
+    let referrer = null;
+    if (referralCode) {
+      referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
     }
 
     const user = new User({
@@ -81,18 +99,36 @@ app.post('/api/register', async (req, res) => {
       email,
       password,
       phone,
+      referralCode: newReferralCode,
+      referredBy: referrer ? referrer._id : null,
     });
 
     await user.save();
 
+    // Apply referral bonus ($5 to both)
+    if (referrer) {
+      referrer.referralCount += 1;
+      referrer.referralEarnings += 5;
+      referrer.fiatBalance += 5;
+      await referrer.save();
+
+      user.fiatBalance += 5;
+      user.referralBonusApplied = true;
+      await user.save();
+    }
+
     res.status(201).json({
-      message: 'User registered successfully! Waiting for admin approval.',
+      message: referrer 
+        ? 'User registered successfully! $5 referral bonus applied to both accounts. Waiting for admin approval.'
+        : 'User registered successfully! Waiting for admin approval.',
       user: {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
         role: user.role,
         isApproved: user.isApproved,
+        referralCode: user.referralCode,
+        referralBonus: referrer ? 5 : 0,
       },
     });
   } catch (error) {
@@ -145,6 +181,7 @@ app.post('/api/login', async (req, res) => {
         isApproved: user.isApproved,
         fiatBalance: user.fiatBalance,
         cryptoBalances: user.cryptoBalances,
+        referralCode: user.referralCode,
       },
     });
   } catch (error) {
@@ -353,6 +390,83 @@ app.post('/api/verify-pin', authenticateToken, async (req, res) => {
   }
 });
 
+// ============ REFERRAL ROUTES ============
+
+// Get referral info
+app.get('/api/referrals', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select(
+      'referralCode referralCount referralEarnings fiatBalance'
+    );
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Get referred users
+    const referredUsers = await User.find({ referredBy: req.user.userId })
+      .select('fullName email createdAt isApproved')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      referralCode: user.referralCode,
+      referralCount: user.referralCount || 0,
+      referralEarnings: user.referralEarnings || 0,
+      referralLink: `${process.env.CLIENT_URL || 'http://localhost:3000'}/register?ref=${user.referralCode}`,
+      referredUsers: referredUsers.map(u => ({
+        fullName: u.fullName,
+        email: u.email,
+        joinedAt: u.createdAt,
+        isApproved: u.isApproved,
+      })),
+    });
+  } catch (error) {
+    console.error('Referral error:', error);
+    res.status(500).json({ message: 'Error fetching referral info' });
+  }
+});
+
+// Apply referral bonus (admin can manually trigger)
+app.post('/api/referrals/apply', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    
+    if (!user.referredBy) {
+      return res.status(400).json({ message: 'No referrer found' });
+    }
+
+    const referrer = await User.findById(user.referredBy);
+    if (!referrer) {
+      return res.status(404).json({ message: 'Referrer not found' });
+    }
+
+    // Check if already applied
+    if (user.referralBonusApplied) {
+      return res.status(400).json({ message: 'Referral bonus already applied' });
+    }
+
+    // Apply bonus
+    referrer.referralEarnings += 5;
+    referrer.fiatBalance += 5;
+    referrer.referralCount += 1;
+    await referrer.save();
+
+    user.fiatBalance += 5;
+    user.referralBonusApplied = true;
+    await user.save();
+
+    res.json({
+      message: 'Referral bonus applied! $5 credited to both accounts.',
+      referrer: {
+        name: referrer.fullName,
+        earnings: referrer.referralEarnings,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error applying referral bonus' });
+  }
+});
+
 // ============ ADMIN ROUTES ============
 
 // Get all users
@@ -511,7 +625,6 @@ app.put('/api/admin/users/:userId/set-pin', authenticateToken, isAdmin, async (r
 
 // ============ DEPOSIT ROUTES ============
 
-// Generate unique reference
 const generateReference = () => {
   return 'BLM-' + Date.now() + '-' + crypto.randomBytes(4).toString('hex').toUpperCase();
 };
@@ -622,7 +735,6 @@ app.post('/api/withdraw', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if user has enough balance
     if (withdrawType === 'fiat') {
       if (user.fiatBalance < amount) {
         return res.status(400).json({ message: 'Insufficient fiat balance' });
@@ -689,7 +801,6 @@ app.get('/api/withdrawals', authenticateToken, async (req, res) => {
 
 // ============ ADMIN DEPOSIT ROUTES ============
 
-// Get all deposits (admin only)
 app.get('/api/admin/deposits', authenticateToken, isAdmin, async (req, res) => {
   try {
     const deposits = await Deposit.find()
@@ -701,7 +812,6 @@ app.get('/api/admin/deposits', authenticateToken, isAdmin, async (req, res) => {
   }
 });
 
-// Get pending deposits (admin only)
 app.get('/api/admin/deposits/pending', authenticateToken, isAdmin, async (req, res) => {
   try {
     const deposits = await Deposit.find({ status: 'pending' })
@@ -713,7 +823,6 @@ app.get('/api/admin/deposits/pending', authenticateToken, isAdmin, async (req, r
   }
 });
 
-// Approve deposit (admin only)
 app.put('/api/admin/deposits/:depositId/approve', authenticateToken, isAdmin, async (req, res) => {
   try {
     const { adminNote } = req.body;
@@ -770,7 +879,6 @@ app.put('/api/admin/deposits/:depositId/approve', authenticateToken, isAdmin, as
   }
 });
 
-// Reject deposit (admin only)
 app.put('/api/admin/deposits/:depositId/reject', authenticateToken, isAdmin, async (req, res) => {
   try {
     const { adminNote } = req.body;
@@ -808,7 +916,6 @@ app.put('/api/admin/deposits/:depositId/reject', authenticateToken, isAdmin, asy
 
 // ============ ADMIN WITHDRAW ROUTES ============
 
-// Get all withdrawals (admin only)
 app.get('/api/admin/withdrawals', authenticateToken, isAdmin, async (req, res) => {
   try {
     const withdrawals = await Withdraw.find()
@@ -820,7 +927,6 @@ app.get('/api/admin/withdrawals', authenticateToken, isAdmin, async (req, res) =
   }
 });
 
-// Get pending withdrawals (admin only)
 app.get('/api/admin/withdrawals/pending', authenticateToken, isAdmin, async (req, res) => {
   try {
     const withdrawals = await Withdraw.find({ status: 'pending' })
@@ -832,7 +938,6 @@ app.get('/api/admin/withdrawals/pending', authenticateToken, isAdmin, async (req
   }
 });
 
-// Approve withdrawal (admin only)
 app.put('/api/admin/withdrawals/:withdrawId/approve', authenticateToken, isAdmin, async (req, res) => {
   try {
     const { adminNote } = req.body;
@@ -897,7 +1002,6 @@ app.put('/api/admin/withdrawals/:withdrawId/approve', authenticateToken, isAdmin
   }
 });
 
-// Reject withdrawal (admin only)
 app.put('/api/admin/withdrawals/:withdrawId/reject', authenticateToken, isAdmin, async (req, res) => {
   try {
     const { adminNote } = req.body;
@@ -935,7 +1039,6 @@ app.put('/api/admin/withdrawals/:withdrawId/reject', authenticateToken, isAdmin,
 
 // ============ SYSTEM SETTINGS ROUTES ============
 
-// Get system settings (public)
 app.get('/api/settings', async (req, res) => {
   try {
     const settings = await SystemSetting.find();
@@ -944,7 +1047,6 @@ app.get('/api/settings', async (req, res) => {
       settingsObj[s.key] = s.value;
     });
     
-    // Set defaults if not found
     if (!settingsObj.maintenanceMode) settingsObj.maintenanceMode = false;
     if (!settingsObj.siteName) settingsObj.siteName = 'Bloom Haven';
     if (!settingsObj.siteTagline) settingsObj.siteTagline = 'Where Your Wealth Blossoms';
@@ -956,19 +1058,15 @@ app.get('/api/settings', async (req, res) => {
   }
 });
 
-// Update system settings (admin only)
 app.put('/api/admin/settings', authenticateToken, isAdmin, async (req, res) => {
   try {
     const { maintenanceMode, siteName, siteTagline, cryptoAddresses } = req.body;
     
-    console.log('Updating settings:', { maintenanceMode, siteName, siteTagline, cryptoAddresses });
-    
-    // Update site settings
     if (maintenanceMode !== undefined) {
       await SystemSetting.findOneAndUpdate(
         { key: 'maintenanceMode' },
         { key: 'maintenanceMode', value: maintenanceMode, updatedAt: new Date() },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
     }
     
@@ -976,7 +1074,7 @@ app.put('/api/admin/settings', authenticateToken, isAdmin, async (req, res) => {
       await SystemSetting.findOneAndUpdate(
         { key: 'siteName' },
         { key: 'siteName', value: siteName, updatedAt: new Date() },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
     }
     
@@ -984,11 +1082,10 @@ app.put('/api/admin/settings', authenticateToken, isAdmin, async (req, res) => {
       await SystemSetting.findOneAndUpdate(
         { key: 'siteTagline' },
         { key: 'siteTagline', value: siteTagline, updatedAt: new Date() },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
     }
     
-    // Update crypto addresses
     if (cryptoAddresses) {
       for (const [currency, address] of Object.entries(cryptoAddresses)) {
         await SystemSetting.findOneAndUpdate(
@@ -999,7 +1096,7 @@ app.put('/api/admin/settings', authenticateToken, isAdmin, async (req, res) => {
             description: `${currency} deposit address`,
             updatedAt: new Date(),
           },
-          { upsert: true, new: true }
+          { upsert: true, returnDocument: 'after' }
         );
       }
     }
@@ -1011,8 +1108,273 @@ app.put('/api/admin/settings', authenticateToken, isAdmin, async (req, res) => {
   }
 });
 
+// ============ BALANCE ROUTE ============
+
+app.get('/api/balance', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('fiatBalance cryptoBalances');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({
+      fiatBalance: user.fiatBalance,
+      cryptoBalances: user.cryptoBalances,
+    });
+  } catch (error) {
+    console.error('Balance error:', error);
+    res.status(500).json({ message: 'Error fetching balance' });
+  }
+});
+
+// ============ KYC ROUTES ============
+
+app.get('/api/admin/kyc', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const users = await User.find({
+      'kyc.status': { $in: ['pending', 'verified', 'rejected'] }
+    }).select('fullName email kyc profilePicture');
+    
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching KYC:', error);
+    res.status(500).json({ message: 'Error fetching KYC submissions' });
+  }
+});
+
+app.put('/api/admin/kyc/:userId/verify', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const { adminNote } = req.body;
+    const user = await User.findById(req.params.userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.kyc.status = 'verified';
+    user.kyc.verifiedAt = new Date();
+    user.kyc.adminNote = adminNote || 'KYC verified';
+    await user.save();
+
+    const io = req.app.get('io');
+    io.emit('kyc-verified', {
+      userId: user._id,
+      fullName: user.fullName,
+    });
+
+    res.json({
+      message: `KYC verified for ${user.fullName}`,
+      kyc: user.kyc,
+    });
+  } catch (error) {
+    console.error('Error verifying KYC:', error);
+    res.status(500).json({ message: 'Error verifying KYC' });
+  }
+});
+
+app.put('/api/admin/kyc/:userId/reject', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const { adminNote } = req.body;
+    const user = await User.findById(req.params.userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.kyc.status = 'rejected';
+    user.kyc.adminNote = adminNote || 'KYC rejected';
+    await user.save();
+
+    res.json({
+      message: `KYC rejected for ${user.fullName}`,
+      kyc: user.kyc,
+    });
+  } catch (error) {
+    console.error('Error rejecting KYC:', error);
+    res.status(500).json({ message: 'Error rejecting KYC' });
+  }
+});
+
+app.post('/api/kyc/submit', authenticateToken, upload.single('governmentId'), async (req, res) => {
+  try {
+    const { idType, idNumber } = req.body;
+    
+    if (!req.file) {
+      return res.status(400).json({ message: 'Please upload your government ID' });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.kyc = {
+      status: 'pending',
+      governmentId: req.file.path,
+      idType: idType || 'other',
+      idNumber: idNumber || '',
+      submittedAt: new Date(),
+    };
+
+    await user.save();
+
+    const io = req.app.get('io');
+    io.emit('new-kyc', {
+      userId: user._id,
+      fullName: user.fullName,
+      email: user.email,
+    });
+
+    res.json({
+      message: 'KYC submitted successfully! Waiting for admin verification.',
+      kyc: user.kyc,
+    });
+  } catch (error) {
+    console.error('Error submitting KYC:', error);
+    res.status(500).json({ message: 'Error submitting KYC' });
+  }
+});
+
+// ============ SWAP ROUTE ============
+
+app.get('/api/swap/rates', async (req, res) => {
+  try {
+    const response = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+    );
+    const data = await response.json();
+    
+    const rates = {
+      USD: 1,
+      BTC: data.bitcoin?.usd || 0,
+      ETH: data.ethereum?.usd || 0,
+      USDT: data.tether?.usd || 1,
+      BNB: data.bnb?.usd || 0,
+    };
+    
+    res.json(rates);
+  } catch (error) {
+    console.error('Error fetching rates:', error);
+    res.json({
+      USD: 1,
+      BTC: 65432,
+      ETH: 3456,
+      USDT: 1,
+      BNB: 587
+    });
+  }
+});
+
+app.post('/api/swap', authenticateToken, async (req, res) => {
+  try {
+    const { fromCurrency, toCurrency, amount } = req.body;
+    
+    if (!fromCurrency || !toCurrency || !amount || amount <= 0) {
+      return res.status(400).json({ message: 'Please provide valid swap details' });
+    }
+    
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    const ratesResponse = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
+    );
+    const ratesData = await ratesResponse.json();
+    
+    const rates = {
+      USD: 1,
+      BTC: ratesData.bitcoin?.usd || 65432,
+      ETH: ratesData.ethereum?.usd || 3456,
+      USDT: ratesData.tether?.usd || 1,
+      BNB: ratesData.bnb?.usd || 587,
+    };
+    
+    let fromBalance = 0;
+    if (fromCurrency === 'USD') {
+      fromBalance = user.fiatBalance;
+    } else {
+      fromBalance = user.cryptoBalances[fromCurrency] || 0;
+    }
+    
+    if (fromBalance < amount) {
+      return res.status(400).json({ message: `Insufficient ${fromCurrency} balance` });
+    }
+    
+    const fromRate = rates[fromCurrency];
+    const toRate = rates[toCurrency];
+    
+    if (!fromRate || !toRate || fromRate === 0) {
+      return res.status(400).json({ message: 'Invalid currency selected' });
+    }
+    
+    const usdValue = amount * fromRate;
+    const toAmount = usdValue / toRate;
+    
+    if (fromCurrency === 'USD') {
+      user.fiatBalance -= amount;
+    } else {
+      user.cryptoBalances[fromCurrency] -= amount;
+    }
+    
+    if (toCurrency === 'USD') {
+      user.fiatBalance += toAmount;
+    } else {
+      user.cryptoBalances[toCurrency] = (user.cryptoBalances[toCurrency] || 0) + toAmount;
+    }
+    
+    await user.save();
+    
+    const transaction = new Transaction({
+      userId: req.user.userId,
+      type: 'swap',
+      currencyType: 'crypto',
+      currency: toCurrency,
+      amount: toAmount,
+      status: 'completed',
+      description: `Swapped ${amount} ${fromCurrency} to ${toAmount.toFixed(6)} ${toCurrency}`,
+      metadata: {
+        fromCurrency,
+        toCurrency,
+        fromAmount: amount,
+        toAmount: toAmount,
+        rate: toRate / fromRate,
+      },
+    });
+    await transaction.save();
+    
+    const io = req.app.get('io');
+    io.emit('balance-update', {
+      userId: req.user.userId,
+      newBalance: {
+        fiat: user.fiatBalance,
+        crypto: user.cryptoBalances,
+      },
+    });
+    
+    res.json({
+      message: `Successfully swapped ${amount} ${fromCurrency} to ${toAmount.toFixed(6)} ${toCurrency}`,
+      swap: {
+        fromCurrency,
+        toCurrency,
+        fromAmount: amount,
+        toAmount: toAmount.toFixed(6),
+        rate: (toRate / fromRate).toFixed(6),
+      },
+      newBalance: {
+        fiatBalance: user.fiatBalance,
+        cryptoBalances: user.cryptoBalances,
+      },
+    });
+    
+  } catch (error) {
+    console.error('Swap error:', error);
+    res.status(500).json({ message: 'Error processing swap' });
+  }
+});
+
 // ============ TEMPORARY ADMIN SETUP ============
-// Remove this route after first use
+
 app.post('/api/setup-first-admin', async (req, res) => {
   try {
     const adminExists = await Admin.findOne();
@@ -1042,7 +1404,7 @@ app.post('/api/setup-first-admin', async (req, res) => {
 });
 
 // ============ TEMPORARY MIGRATION ============
-// Add missing fields to existing users (run once)
+
 app.post('/api/migrate-users', async (req, res) => {
   try {
     const users = await User.find({});
@@ -1051,25 +1413,21 @@ app.post('/api/migrate-users', async (req, res) => {
     for (const user of users) {
       let needsUpdate = false;
       
-      // Add address if missing
       if (!user.address) {
         user.address = { street: '', city: '', state: '', country: '', zipCode: '' };
         needsUpdate = true;
       }
       
-      // Add contact if missing
       if (!user.contact) {
         user.contact = { email: user.email || '', phone: user.phone || '' };
         needsUpdate = true;
       }
       
-      // Add profilePicture if missing
       if (user.profilePicture === undefined) {
         user.profilePicture = '';
         needsUpdate = true;
       }
       
-      // Add kyc if missing
       if (!user.kyc) {
         user.kyc = {
           status: 'not_submitted',
@@ -1083,15 +1441,32 @@ app.post('/api/migrate-users', async (req, res) => {
         needsUpdate = true;
       }
       
-      // Add withdrawalPin if missing
       if (user.withdrawalPin === undefined) {
         user.withdrawalPin = '';
         needsUpdate = true;
       }
       
-      // Add pinIssued if missing
       if (user.pinIssued === undefined) {
         user.pinIssued = false;
+        needsUpdate = true;
+      }
+      
+      // Add referral fields if missing
+      if (user.referralCode === undefined || user.referralCode === '') {
+        const generateReferralCode = () => {
+          return 'BH' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        };
+        user.referralCode = generateReferralCode();
+        needsUpdate = true;
+      }
+      
+      if (user.referralCount === undefined) {
+        user.referralCount = 0;
+        needsUpdate = true;
+      }
+      
+      if (user.referralEarnings === undefined) {
+        user.referralEarnings = 0;
         needsUpdate = true;
       }
       
@@ -1112,297 +1487,6 @@ app.post('/api/migrate-users', async (req, res) => {
       message: 'Error migrating users',
       error: error.message 
     });
-  }
-});
-
-// ============ BALANCE ROUTE ============
-
-// Get user's balance
-app.get('/api/balance', authenticateToken, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId).select('fiatBalance cryptoBalances');
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json({
-      fiatBalance: user.fiatBalance,
-      cryptoBalances: user.cryptoBalances,
-    });
-  } catch (error) {
-    console.error('Balance error:', error);
-    res.status(500).json({ message: 'Error fetching balance' });
-  }
-});
-
-// ============ KYC ROUTES ============
-
-// Get all KYC submissions (admin only)
-app.get('/api/admin/kyc', authenticateToken, isAdmin, async (req, res) => {
-  try {
-    const users = await User.find({
-      'kyc.status': { $in: ['pending', 'verified', 'rejected'] }
-    }).select('fullName email kyc profilePicture');
-    
-    res.json(users);
-  } catch (error) {
-    console.error('Error fetching KYC:', error);
-    res.status(500).json({ message: 'Error fetching KYC submissions' });
-  }
-});
-
-// Verify KYC (admin only)
-app.put('/api/admin/kyc/:userId/verify', authenticateToken, isAdmin, async (req, res) => {
-  try {
-    const { adminNote } = req.body;
-    const user = await User.findById(req.params.userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    user.kyc.status = 'verified';
-    user.kyc.verifiedAt = new Date();
-    user.kyc.adminNote = adminNote || 'KYC verified';
-    await user.save();
-
-    // Notify user via socket
-    const io = req.app.get('io');
-    io.emit('kyc-verified', {
-      userId: user._id,
-      fullName: user.fullName,
-    });
-
-    res.json({
-      message: `KYC verified for ${user.fullName}`,
-      kyc: user.kyc,
-    });
-  } catch (error) {
-    console.error('Error verifying KYC:', error);
-    res.status(500).json({ message: 'Error verifying KYC' });
-  }
-});
-
-// Reject KYC (admin only)
-app.put('/api/admin/kyc/:userId/reject', authenticateToken, isAdmin, async (req, res) => {
-  try {
-    const { adminNote } = req.body;
-    const user = await User.findById(req.params.userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    user.kyc.status = 'rejected';
-    user.kyc.adminNote = adminNote || 'KYC rejected';
-    await user.save();
-
-    res.json({
-      message: `KYC rejected for ${user.fullName}`,
-      kyc: user.kyc,
-    });
-  } catch (error) {
-    console.error('Error rejecting KYC:', error);
-    res.status(500).json({ message: 'Error rejecting KYC' });
-  }
-});
-
-// ============ KYC SUBMIT ROUTE ============
-
-// Submit KYC (user)
-app.post('/api/kyc/submit', authenticateToken, upload.single('governmentId'), async (req, res) => {
-  try {
-    const { idType, idNumber } = req.body;
-    
-    console.log('KYC Submission - User:', req.user.userId);
-    console.log('ID Type:', idType);
-    console.log('ID Number:', idNumber);
-    console.log('File:', req.file);
-    
-    if (!req.file) {
-      return res.status(400).json({ message: 'Please upload your government ID' });
-    }
-
-    const user = await User.findById(req.user.userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    user.kyc = {
-      status: 'pending',
-      governmentId: req.file.path,
-      idType: idType || 'other',
-      idNumber: idNumber || '',
-      submittedAt: new Date(),
-    };
-
-    await user.save();
-
-    // Notify admin via socket
-    const io = req.app.get('io');
-    io.emit('new-kyc', {
-      userId: user._id,
-      fullName: user.fullName,
-      email: user.email,
-    });
-
-    res.json({
-      message: 'KYC submitted successfully! Waiting for admin verification.',
-      kyc: user.kyc,
-    });
-  } catch (error) {
-    console.error('Error submitting KYC:', error);
-    res.status(500).json({ message: 'Error submitting KYC' });
-  }
-});
-
-// ============ SWAP ROUTE ============
-
-// Get real-time exchange rates
-app.get('/api/swap/rates', async (req, res) => {
-  try {
-    // Fetch real prices from CoinGecko
-    const response = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
-    );
-    const data = await response.json();
-    
-    // Also get USD price (always 1)
-    const rates = {
-      USD: 1,
-      BTC: data.bitcoin?.usd || 0,
-      ETH: data.ethereum?.usd || 0,
-      USDT: data.tether?.usd || 1,
-      BNB: data.bnb?.usd || 0,
-    };
-    
-    res.json(rates);
-  } catch (error) {
-    console.error('Error fetching rates:', error);
-    // Fallback rates if API fails
-    res.json({
-      USD: 1,
-      BTC: 65432,
-      ETH: 3456,
-      USDT: 1,
-      BNB: 587
-    });
-  }
-});
-
-// Execute swap
-app.post('/api/swap', authenticateToken, async (req, res) => {
-  try {
-    const { fromCurrency, toCurrency, amount } = req.body;
-    
-    if (!fromCurrency || !toCurrency || !amount || amount <= 0) {
-      return res.status(400).json({ message: 'Please provide valid swap details' });
-    }
-    
-    const user = await User.findById(req.user.userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    
-    // Get current rates
-    const ratesResponse = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,bnb&vs_currencies=usd'
-    );
-    const ratesData = await ratesResponse.json();
-    
-    const rates = {
-      USD: 1,
-      BTC: ratesData.bitcoin?.usd || 65432,
-      ETH: ratesData.ethereum?.usd || 3456,
-      USDT: ratesData.tether?.usd || 1,
-      BNB: ratesData.bnb?.usd || 587,
-    };
-    
-    // Check if user has enough balance
-    let fromBalance = 0;
-    if (fromCurrency === 'USD') {
-      fromBalance = user.fiatBalance;
-    } else {
-      fromBalance = user.cryptoBalances[fromCurrency] || 0;
-    }
-    
-    if (fromBalance < amount) {
-      return res.status(400).json({ message: `Insufficient ${fromCurrency} balance` });
-    }
-    
-    // Calculate conversion
-    const fromRate = rates[fromCurrency];
-    const toRate = rates[toCurrency];
-    
-    if (!fromRate || !toRate || fromRate === 0) {
-      return res.status(400).json({ message: 'Invalid currency selected' });
-    }
-    
-    const usdValue = amount * fromRate;
-    const toAmount = usdValue / toRate;
-    
-    // Deduct from source
-    if (fromCurrency === 'USD') {
-      user.fiatBalance -= amount;
-    } else {
-      user.cryptoBalances[fromCurrency] -= amount;
-    }
-    
-    // Add to destination
-    if (toCurrency === 'USD') {
-      user.fiatBalance += toAmount;
-    } else {
-      user.cryptoBalances[toCurrency] = (user.cryptoBalances[toCurrency] || 0) + toAmount;
-    }
-    
-    await user.save();
-    
-    // Create transaction record
-    const transaction = new Transaction({
-      userId: req.user.userId,
-      type: 'swap',
-      currencyType: 'crypto',
-      currency: toCurrency,
-      amount: toAmount,
-      status: 'completed',
-      description: `Swapped ${amount} ${fromCurrency} to ${toAmount} ${toCurrency}`,
-      metadata: {
-        fromCurrency,
-        toCurrency,
-        fromAmount: amount,
-        toAmount: toAmount,
-        rate: toRate / fromRate,
-      },
-    });
-    await transaction.save();
-    
-    // Emit socket event
-    const io = req.app.get('io');
-    io.emit('balance-update', {
-      userId: req.user.userId,
-      newBalance: {
-        fiat: user.fiatBalance,
-        crypto: user.cryptoBalances,
-      },
-    });
-    
-    res.json({
-      message: `Successfully swapped ${amount} ${fromCurrency} to ${toAmount.toFixed(6)} ${toCurrency}`,
-      swap: {
-        fromCurrency,
-        toCurrency,
-        fromAmount: amount,
-        toAmount: toAmount.toFixed(6),
-        rate: (toRate / fromRate).toFixed(6),
-      },
-      newBalance: {
-        fiatBalance: user.fiatBalance,
-        cryptoBalances: user.cryptoBalances,
-      },
-    });
-    
-  } catch (error) {
-    console.error('Swap error:', error);
-    res.status(500).json({ message: 'Error processing swap' });
   }
 });
 
