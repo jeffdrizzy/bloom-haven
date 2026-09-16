@@ -70,6 +70,7 @@ import {
 Camera,
   Save,
   FileText,
+  ExternalLink,
 } from 'lucide-react';
 
 export {
@@ -141,6 +142,7 @@ export {
 Camera,
   Save,
   FileText,
+  ExternalLink,
 };
 
 // Crypto currency icon map
