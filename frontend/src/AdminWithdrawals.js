@@ -1,13 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from './services/api';
+import { brand } from './brand';
+import AdminLayout from './AdminLayout';
+import {
+  Banknote,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Loader2,
+  AlertTriangle,
+  User,
+  Wallet,
+  Bitcoin,
+  Banknote as BankIcon,
+  Link as LinkIcon,
+  ExternalLink,
+  Receipt,
+  getCryptoIcon,
+} from './icons';
 
 const AdminWithdrawals = () => {
-  const navigate = useNavigate();
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     fetchWithdrawals();
@@ -18,6 +35,7 @@ const AdminWithdrawals = () => {
       const response = await api.get('/admin/withdrawals');
       setWithdrawals(response.data);
     } catch (error) {
+      console.error('Error fetching withdrawals:', error);
       setError('Failed to fetch withdrawals');
     } finally {
       setLoading(false);
@@ -42,7 +60,7 @@ const AdminWithdrawals = () => {
   const handleReject = async (withdrawId) => {
     const reason = prompt('Enter rejection reason:');
     if (!reason) return;
-    
+
     try {
       const response = await api.put(`/admin/withdrawals/${withdrawId}/reject`, {
         adminNote: reason,
@@ -57,7 +75,7 @@ const AdminWithdrawals = () => {
   };
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'approved': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
@@ -66,126 +84,280 @@ const AdminWithdrawals = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-rose-50">
-        <div className="text-center">
-          <div className="text-4xl mb-4">🏦</div>
-          <p className="text-gray-600">Loading withdrawals...</p>
-        </div>
-      </div>
-    );
-  }
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'pending': return Clock;
+      case 'approved': return CheckCircle2;
+      case 'rejected': return XCircle;
+      case 'completed': return CheckCircle2;
+      default: return Clock;
+    }
+  };
+
+  const getTypeIcon = (withdrawType, currency) => {
+    if (withdrawType === 'crypto') return getCryptoIcon(currency);
+    if (withdrawType === 'fiat') return BankIcon;
+    return Banknote;
+  };
+
+  const filteredWithdrawals = withdrawals.filter((w) => {
+    if (filter === 'all') return true;
+    return w.status === filter;
+  });
+
+  const stats = {
+    total: withdrawals.length,
+    pending: withdrawals.filter((w) => w.status === 'pending').length,
+    approved: withdrawals.filter((w) => w.status === 'approved').length,
+    rejected: withdrawals.filter((w) => w.status === 'rejected').length,
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-rose-600">🏦 Manage Withdrawals</h1>
-            <p className="text-gray-600 mt-1">Approve or reject withdrawal requests</p>
+    <AdminLayout>
+      <div className="min-h-screen py-8 px-4" style={{ background: brand.colors.background }}>
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1
+              className="text-3xl font-bold flex items-center gap-2"
+              style={{ color: brand.colors.primary }}
+            >
+              <Banknote size={32} strokeWidth={2} />
+              Manage Withdrawals
+            </h1>
+            <p className="text-sm mt-1" style={{ color: brand.colors.textLight }}>
+              Approve or reject user withdrawal requests
+            </p>
           </div>
-          <button
-            onClick={() => navigate('/admin')}
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
-          >
-            ← Back to Admin
-          </button>
-        </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {error}
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div
+              className="rounded-2xl shadow-lg p-4"
+              style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}
+            >
+              <h3 className="text-sm mb-2" style={{ color: brand.colors.textMuted }}>Total</h3>
+              <p className="text-2xl font-bold" style={{ color: brand.colors.text }}>{stats.total}</p>
+            </div>
+            <div
+              className="rounded-2xl shadow-lg p-4"
+              style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}
+            >
+              <h3 className="text-sm mb-2 flex items-center gap-1.5" style={{ color: brand.colors.textMuted }}>
+                <Clock size={14} /> Pending
+              </h3>
+              <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+            </div>
+            <div
+              className="rounded-2xl shadow-lg p-4"
+              style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}
+            >
+              <h3 className="text-sm mb-2 flex items-center gap-1.5" style={{ color: brand.colors.textMuted }}>
+                <CheckCircle2 size={14} /> Approved
+              </h3>
+              <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
+            </div>
+            <div
+              className="rounded-2xl shadow-lg p-4"
+              style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}
+            >
+              <h3 className="text-sm mb-2 flex items-center gap-1.5" style={{ color: brand.colors.textMuted }}>
+                <XCircle size={14} /> Rejected
+              </h3>
+              <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
+            </div>
           </div>
-        )}
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
-            {success}
-          </div>
-        )}
 
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {withdrawals.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                      No withdrawal requests found
-                    </td>
-                  </tr>
-                ) : (
-                  withdrawals.map((withdraw) => (
-                    <tr key={withdraw._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-gray-900">{withdraw.userId?.fullName || 'Unknown'}</p>
-                        <p className="text-sm text-gray-500">{withdraw.userId?.email || ''}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm capitalize">
-                          {withdraw.withdrawType === 'crypto' ? '₿ Crypto' : '💵 Fiat'}
-                        </span>
-                        <br />
-                        <span className="text-xs text-gray-500">{withdraw.currency}</span>
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium">
-                        {withdraw.amount} {withdraw.currency}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {withdraw.withdrawType === 'crypto' ? (
-                          <span className="font-mono text-xs">{withdraw.walletAddress?.slice(0, 15)}...</span>
-                        ) : (
-                          <span>{withdraw.bankName}</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(withdraw.status)}`}>
-                          {withdraw.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(withdraw.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4">
-                        {withdraw.status === 'pending' ? (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleApprove(withdraw._id)}
-                              className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleReject(withdraw._id)}
-                              className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition"
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-400">Processed</span>
-                        )}
-                      </td>
+          {/* Messages */}
+          {error && (
+            <div
+              className="border-l-4 px-4 py-3 rounded-lg mb-4 flex items-center gap-3"
+              style={{ backgroundColor: '#FDF2F2', borderColor: brand.colors.error, color: brand.colors.error }}
+            >
+              <AlertTriangle size={20} />
+              {error}
+            </div>
+          )}
+          {success && (
+            <div
+              className="border-l-4 px-4 py-3 rounded-lg mb-4 flex items-center gap-3"
+              style={{ backgroundColor: '#F0FDF4', borderColor: brand.colors.success, color: brand.colors.success }}
+            >
+              <CheckCircle2 size={20} />
+              {success}
+            </div>
+          )}
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3 mb-6">
+            {[
+              { key: 'all', label: 'All', Icon: Banknote },
+              { key: 'pending', label: 'Pending', Icon: Clock },
+              { key: 'approved', label: 'Approved', Icon: CheckCircle2 },
+              { key: 'rejected', label: 'Rejected', Icon: XCircle },
+            ].map((item) => {
+              const IconComponent = item.Icon;
+              const isActive = filter === item.key;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => setFilter(item.key)}
+                  className="px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2"
+                  style={{
+                    background: isActive ? brand.gradients.primary : brand.colors.surfaceAlt,
+                    color: isActive ? 'white' : brand.colors.text,
+                  }}
+                >
+                  <IconComponent size={16} strokeWidth={2} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Withdrawals Table */}
+          {loading ? (
+            <div
+              className="rounded-2xl shadow-lg p-12 text-center"
+              style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}
+            >
+              <Loader2 size={40} className="animate-spin mx-auto mb-4" style={{ color: brand.colors.primary }} />
+              <p style={{ color: brand.colors.textLight }}>Loading withdrawals...</p>
+            </div>
+          ) : (
+            <div
+              className="rounded-2xl shadow-lg overflow-hidden"
+              style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}
+            >
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead style={{ background: brand.colors.surfaceAlt }}>
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>User</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>Details</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>Actions</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody>
+                    {filteredWithdrawals.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="px-6 py-8 text-center" style={{ color: brand.colors.textMuted }}>
+                          No withdrawals found
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredWithdrawals.map((withdraw) => {
+                        const TypeIcon = getTypeIcon(withdraw.withdrawType, withdraw.currency);
+                        const StatusIcon = getStatusIcon(withdraw.status);
+                        return (
+                          <tr
+                            key={withdraw._id}
+                            className="transition hover:bg-opacity-50"
+                            style={{ borderTop: `1px solid ${brand.colors.primarySoft}` }}
+                          >
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                                  style={{ background: brand.colors.creamSoft, color: brand.colors.primary }}
+                                >
+                                  <User size={18} strokeWidth={1.8} />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium" style={{ color: brand.colors.text }}>
+                                    {withdraw.userId?.fullName || 'Unknown'}
+                                  </p>
+                                  <p className="text-xs" style={{ color: brand.colors.textMuted }}>
+                                    {withdraw.userId?.email || ''}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <TypeIcon size={18} strokeWidth={1.8} style={{ color: brand.colors.primary }} />
+                                <div>
+                                  <p className="text-sm capitalize" style={{ color: brand.colors.text }}>
+                                    {withdraw.withdrawType}
+                                  </p>
+                                  <p className="text-xs" style={{ color: brand.colors.textMuted }}>
+                                    {withdraw.currency}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm font-semibold" style={{ color: brand.colors.text }}>
+                              {withdraw.amount} {withdraw.currency}
+                              {withdraw.metadata?.fee && (
+                                <p className="text-xs font-normal" style={{ color: brand.colors.textMuted }}>
+                                  Fee: ${withdraw.metadata.fee.toFixed(2)}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-xs">
+                              {withdraw.withdrawType === 'crypto' ? (
+                                <div className="flex items-center gap-1" style={{ color: brand.colors.textMuted }}>
+                                  <LinkIcon size={12} />
+                                  <span className="font-mono">
+                                    {withdraw.walletAddress?.slice(0, 15)}...
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1" style={{ color: brand.colors.textMuted }}>
+                                  <BankIcon size={12} />
+                                  <span>{withdraw.bankName}</span>
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`px-2 py-1 text-xs rounded-full font-semibold flex items-center gap-1 w-fit ${getStatusColor(withdraw.status)}`}>
+                                <StatusIcon size={12} />
+                                {withdraw.status.toUpperCase()}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-xs" style={{ color: brand.colors.textMuted }}>
+                              {new Date(withdraw.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4">
+                              {withdraw.status === 'pending' ? (
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleApprove(withdraw._id)}
+                                    className="px-3 py-1 rounded text-white text-xs font-medium transition hover:opacity-90 flex items-center gap-1"
+                                    style={{ background: brand.colors.success }}
+                                  >
+                                    <CheckCircle2 size={12} />
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => handleReject(withdraw._id)}
+                                    className="px-3 py-1 rounded text-white text-xs font-medium transition hover:opacity-90 flex items-center gap-1"
+                                    style={{ background: brand.colors.error }}
+                                  >
+                                    <XCircle size={12} />
+                                    Reject
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-xs" style={{ color: brand.colors.textMuted }}>Processed</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 
