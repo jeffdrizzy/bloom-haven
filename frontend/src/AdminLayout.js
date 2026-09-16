@@ -94,8 +94,8 @@ const AdminLayout = ({ children }) => {
         </div>
       </div>
 
-      {/* Spacer */}
-      <div className="h-16" />
+      {/* Spacer for fixed header */}
+      <div style={{ height: '64px' }} />
 
       {/* Overlay */}
       {isOpen && (
@@ -219,6 +219,11 @@ const AdminLayout = ({ children }) => {
           </p>
         </div>
       </div>
+
+      {/* ⭐ MAIN CONTENT — This is what was missing! */}
+      <main style={{ minHeight: 'calc(100vh - 64px)' }}>
+        {children}
+      </main>
     </>
   );
 };
