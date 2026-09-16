@@ -3,6 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from './services/api';
 import { brand } from './brand';
+import {
+  User,
+  ShieldCheck,
+  Lock,
+  ArrowLeft,
+  Camera,
+  Save,
+  KeyRound,
+  Upload,
+  CheckCircle2,
+  AlertTriangle,
+  Loader2,
+  Info,
+  Calendar,
+  FileText,
+} from './icons';
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
@@ -11,7 +27,7 @@ const ProfileSettings = () => {
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   const [profile, setProfile] = useState({
     fullName: '',
     email: '',
@@ -29,11 +45,13 @@ const ProfileSettings = () => {
     newPassword: '',
     confirmPassword: '',
   });
+
   const [kycData, setKycData] = useState({
     idType: 'passport',
     idNumber: '',
     governmentId: null,
   });
+
   const [imagePreview, setImagePreview] = useState('');
   const [activeTab, setActiveTab] = useState('profile');
 
@@ -91,16 +109,14 @@ const ProfileSettings = () => {
     }
 
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
+    reader.onloadend = () => setImagePreview(reader.result);
     reader.readAsDataURL(file);
 
     const formData = new FormData();
     formData.append('profilePicture', file);
 
     try {
-      const response = await api.post('/profile/picture', formData, {
+      await api.post('/profile/picture', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setSuccess('Profile picture updated!');
@@ -176,21 +192,29 @@ const ProfileSettings = () => {
 
   const getKYCStatusBadge = () => {
     const status = profile.kyc?.status || 'not_submitted';
-    switch(status) {
-      case 'verified': return 'bg-green-100 text-green-800 border-green-400';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-400';
-      case 'rejected': return 'bg-red-100 text-red-800 border-red-400';
-      default: return 'bg-gray-100 text-gray-800 border-gray-400';
+    switch (status) {
+      case 'verified':
+        return 'bg-green-100 text-green-800 border-green-400';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-400';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-400';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-400';
     }
   };
 
   const getKYCStatusText = () => {
     const status = profile.kyc?.status || 'not_submitted';
-    switch(status) {
-      case 'verified': return '✅ Verified';
-      case 'pending': return '⏳ Pending Review';
-      case 'rejected': return '❌ Rejected';
-      default: return '📋 Not Submitted';
+    switch (status) {
+      case 'verified':
+        return 'Verified';
+      case 'pending':
+        return 'Pending Review';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return 'Not Submitted';
     }
   };
 
@@ -198,7 +222,7 @@ const ProfileSettings = () => {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: brand.colors.background }}>
         <div className="text-center">
-          <div className="text-4xl mb-4">⚙️</div>
+          <Loader2 size={40} className="animate-spin mx-auto mb-4" style={{ color: brand.colors.primary }} />
           <p style={{ color: brand.colors.textLight }}>Loading profile...</p>
         </div>
       </div>
@@ -208,35 +232,31 @@ const ProfileSettings = () => {
   return (
     <div className="min-h-screen py-8 px-4" style={{ background: brand.colors.background }}>
       <div className="max-w-5xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold" style={{ color: brand.colors.primary }}>⚙️ Profile Settings</h1>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2" style={{ color: brand.colors.primary }}>
+            <User size={28} strokeWidth={2} />
+            Profile Settings
+          </h1>
           <button
             onClick={() => navigate('/dashboard')}
-            className="px-4 py-2 rounded-lg font-medium transition hover:opacity-80"
-            style={{ 
-              background: brand.colors.surfaceAlt,
-              color: brand.colors.text
-            }}
+            className="px-4 py-2 rounded-lg font-medium transition hover:opacity-80 flex items-center gap-2 w-full sm:w-auto justify-center"
+            style={{ background: brand.colors.surfaceAlt, color: brand.colors.text }}
           >
-            ← Back to Dashboard
+            <ArrowLeft size={18} />
+            Back to Dashboard
           </button>
         </div>
 
         {error && (
-          <div className="border-l-4 px-4 py-3 rounded-lg mb-4" style={{
-            backgroundColor: '#FDF2F2',
-            borderColor: brand.colors.error,
-            color: brand.colors.error
-          }}>
+          <div className="border-l-4 px-4 py-3 rounded-lg mb-4 flex items-center gap-3" style={{ backgroundColor: '#FDF2F2', borderColor: brand.colors.error, color: brand.colors.error }}>
+            <AlertTriangle size={20} />
             {error}
           </div>
         )}
         {success && (
-          <div className="border-l-4 px-4 py-3 rounded-lg mb-4" style={{
-            backgroundColor: '#F0FDF4',
-            borderColor: brand.colors.success,
-            color: brand.colors.success
-          }}>
+          <div className="border-l-4 px-4 py-3 rounded-lg mb-4 flex items-center gap-3" style={{ backgroundColor: '#F0FDF4', borderColor: brand.colors.success, color: brand.colors.success }}>
+            <CheckCircle2 size={20} />
             {success}
           </div>
         )}
@@ -244,30 +264,32 @@ const ProfileSettings = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar Tabs */}
           <div className="lg:col-span-1">
-            <div className="rounded-2xl shadow-lg p-4 sticky top-4" style={{ 
-              background: brand.colors.surface,
-              border: `1px solid ${brand.colors.primarySoft}`
-            }}>
+            <div className="rounded-2xl shadow-lg p-4 sticky top-4" style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}>
               <div className="flex flex-col gap-2">
                 {[
-                  { key: 'profile', icon: '👤', label: 'Profile' },
-                  { key: 'kyc', icon: '🛡️', label: 'KYC Verification' },
-                  { key: 'security', icon: '🔒', label: 'Security' },
-                ].map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={`px-4 py-3 rounded-xl text-left font-medium transition ${
-                      activeTab === tab.key ? 'text-white' : ''
-                    }`}
-                    style={{
-                      background: activeTab === tab.key ? brand.gradients.primary : 'transparent',
-                      color: activeTab === tab.key ? 'white' : brand.colors.text,
-                    }}
-                  >
-                    {tab.icon} {tab.label}
-                  </button>
-                ))}
+                  { key: 'profile', Icon: User, label: 'Profile' },
+                  { key: 'kyc', Icon: ShieldCheck, label: 'KYC Verification' },
+                  { key: 'security', Icon: Lock, label: 'Security' },
+                ].map((tab) => {
+                  const IconComponent = tab.Icon;
+                  const isActive = activeTab === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveTab(tab.key)}
+                      className={`px-4 py-3 rounded-xl text-left font-medium transition flex items-center gap-3 ${
+                        isActive ? 'text-white' : ''
+                      }`}
+                      style={{
+                        background: isActive ? brand.gradients.primary : 'transparent',
+                        color: isActive ? 'white' : brand.colors.text,
+                      }}
+                    >
+                      <IconComponent size={20} strokeWidth={2} />
+                      {tab.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -276,18 +298,19 @@ const ProfileSettings = () => {
           <div className="lg:col-span-3">
             {/* Profile Tab */}
             {activeTab === 'profile' && (
-              <div className="rounded-2xl shadow-xl p-6" style={{ 
-                background: brand.colors.surface,
-                border: `1px solid ${brand.colors.primarySoft}`
-              }}>
-                <h2 className="text-xl font-semibold mb-6" style={{ color: brand.colors.text }}>👤 Profile Information</h2>
-                
+              <div className="rounded-2xl shadow-xl p-6" style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}>
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: brand.colors.text }}>
+                  <User size={22} strokeWidth={2} />
+                  Profile Information
+                </h2>
+
+                {/* Profile Picture */}
                 <div className="flex items-center gap-6 mb-6">
                   <div className="relative">
                     <img
                       src={imagePreview || 'https://ui-avatars.com/api/?name=' + profile.fullName + '&background=8A9A7F&color=fff&size=100'}
                       alt="Profile"
-                      className="w-24 h-24 rounded-full object-cover border-4" 
+                      className="w-24 h-24 rounded-full object-cover border-4"
                       style={{ borderColor: brand.colors.primary }}
                     />
                     <label
@@ -295,7 +318,7 @@ const ProfileSettings = () => {
                       className="absolute bottom-0 right-0 p-1.5 rounded-full cursor-pointer transition hover:opacity-80"
                       style={{ background: brand.gradients.primary }}
                     >
-                      <span className="text-white">📸</span>
+                      <Camera size={16} style={{ color: 'white' }} />
                     </label>
                     <input
                       id="profilePictureInput"
@@ -311,6 +334,7 @@ const ProfileSettings = () => {
                   </div>
                 </div>
 
+                {/* Profile Form */}
                 <form onSubmit={handleProfileUpdate} className="space-y-4">
                   <div>
                     <label className="block font-medium mb-1" style={{ color: brand.colors.text }}>Full Name</label>
@@ -319,19 +343,9 @@ const ProfileSettings = () => {
                       value={profile.fullName || ''}
                       onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                      style={{
-                        border: `2px solid ${brand.colors.primarySoft}`,
-                        background: brand.colors.background,
-                        color: brand.colors.text,
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.borderColor = brand.colors.primary;
-                        e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = brand.colors.primarySoft;
-                        e.target.style.boxShadow = 'none';
-                      }}
+                      style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                      onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                      onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                     />
                   </div>
 
@@ -341,24 +355,11 @@ const ProfileSettings = () => {
                       <input
                         type="email"
                         value={profile.contact?.email || profile.email || ''}
-                        onChange={(e) => setProfile({
-                          ...profile,
-                          contact: { ...profile.contact, email: e.target.value }
-                        })}
+                        onChange={(e) => setProfile({ ...profile, contact: { ...profile.contact, email: e.target.value } })}
                         className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                        style={{
-                          border: `2px solid ${brand.colors.primarySoft}`,
-                          background: brand.colors.background,
-                          color: brand.colors.text,
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = brand.colors.primary;
-                          e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = brand.colors.primarySoft;
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                        onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                        onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                       />
                     </div>
                     <div>
@@ -366,24 +367,11 @@ const ProfileSettings = () => {
                       <input
                         type="tel"
                         value={profile.contact?.phone || profile.phone || ''}
-                        onChange={(e) => setProfile({
-                          ...profile,
-                          contact: { ...profile.contact, phone: e.target.value }
-                        })}
+                        onChange={(e) => setProfile({ ...profile, contact: { ...profile.contact, phone: e.target.value } })}
                         className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                        style={{
-                          border: `2px solid ${brand.colors.primarySoft}`,
-                          background: brand.colors.background,
-                          color: brand.colors.text,
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = brand.colors.primary;
-                          e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = brand.colors.primarySoft;
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                        onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                        onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                       />
                     </div>
                   </div>
@@ -393,24 +381,11 @@ const ProfileSettings = () => {
                     <input
                       type="text"
                       value={profile.address?.street || ''}
-                      onChange={(e) => setProfile({
-                        ...profile,
-                        address: { ...profile.address, street: e.target.value }
-                      })}
+                      onChange={(e) => setProfile({ ...profile, address: { ...profile.address, street: e.target.value } })}
                       className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                      style={{
-                        border: `2px solid ${brand.colors.primarySoft}`,
-                        background: brand.colors.background,
-                        color: brand.colors.text,
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.borderColor = brand.colors.primary;
-                        e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = brand.colors.primarySoft;
-                        e.target.style.boxShadow = 'none';
-                      }}
+                      style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                      onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                      onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                     />
                   </div>
 
@@ -420,24 +395,11 @@ const ProfileSettings = () => {
                       <input
                         type="text"
                         value={profile.address?.city || ''}
-                        onChange={(e) => setProfile({
-                          ...profile,
-                          address: { ...profile.address, city: e.target.value }
-                        })}
+                        onChange={(e) => setProfile({ ...profile, address: { ...profile.address, city: e.target.value } })}
                         className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                        style={{
-                          border: `2px solid ${brand.colors.primarySoft}`,
-                          background: brand.colors.background,
-                          color: brand.colors.text,
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = brand.colors.primary;
-                          e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = brand.colors.primarySoft;
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                        onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                        onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                       />
                     </div>
                     <div>
@@ -445,24 +407,11 @@ const ProfileSettings = () => {
                       <input
                         type="text"
                         value={profile.address?.state || ''}
-                        onChange={(e) => setProfile({
-                          ...profile,
-                          address: { ...profile.address, state: e.target.value }
-                        })}
+                        onChange={(e) => setProfile({ ...profile, address: { ...profile.address, state: e.target.value } })}
                         className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                        style={{
-                          border: `2px solid ${brand.colors.primarySoft}`,
-                          background: brand.colors.background,
-                          color: brand.colors.text,
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = brand.colors.primary;
-                          e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = brand.colors.primarySoft;
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                        onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                        onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                       />
                     </div>
                   </div>
@@ -473,24 +422,11 @@ const ProfileSettings = () => {
                       <input
                         type="text"
                         value={profile.address?.country || ''}
-                        onChange={(e) => setProfile({
-                          ...profile,
-                          address: { ...profile.address, country: e.target.value }
-                        })}
+                        onChange={(e) => setProfile({ ...profile, address: { ...profile.address, country: e.target.value } })}
                         className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                        style={{
-                          border: `2px solid ${brand.colors.primarySoft}`,
-                          background: brand.colors.background,
-                          color: brand.colors.text,
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = brand.colors.primary;
-                          e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = brand.colors.primarySoft;
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                        onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                        onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                       />
                     </div>
                     <div>
@@ -498,24 +434,11 @@ const ProfileSettings = () => {
                       <input
                         type="text"
                         value={profile.address?.zipCode || ''}
-                        onChange={(e) => setProfile({
-                          ...profile,
-                          address: { ...profile.address, zipCode: e.target.value }
-                        })}
+                        onChange={(e) => setProfile({ ...profile, address: { ...profile.address, zipCode: e.target.value } })}
                         className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                        style={{
-                          border: `2px solid ${brand.colors.primarySoft}`,
-                          background: brand.colors.background,
-                          color: brand.colors.text,
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = brand.colors.primary;
-                          e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = brand.colors.primarySoft;
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                        onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                        onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                       />
                     </div>
                   </div>
@@ -523,15 +446,25 @@ const ProfileSettings = () => {
                   <button
                     type="submit"
                     disabled={updating}
-                    className="w-full py-3 rounded-xl text-white font-semibold transition transform hover:scale-[1.02]"
+                    className="w-full py-3 rounded-xl text-white font-semibold transition transform hover:scale-[1.02] flex items-center justify-center gap-2"
                     style={{
                       background: brand.gradients.primary,
                       opacity: updating ? 0.6 : 1,
                       cursor: updating ? 'not-allowed' : 'pointer',
-                      boxShadow: `0 4px 14px ${brand.colors.primarySoft}`
+                      boxShadow: `0 4px 14px ${brand.colors.primarySoft}`,
                     }}
                   >
-                    {updating ? 'Updating...' : '💾 Update Profile'}
+                    {updating ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <Save size={18} />
+                        Update Profile
+                      </>
+                    )}
                   </button>
                 </form>
               </div>
@@ -539,17 +472,15 @@ const ProfileSettings = () => {
 
             {/* KYC Tab */}
             {activeTab === 'kyc' && (
-              <div className="rounded-2xl shadow-xl p-6" style={{ 
-                background: brand.colors.surface,
-                border: `1px solid ${brand.colors.primarySoft}`
-              }}>
-                <h2 className="text-xl font-semibold mb-6" style={{ color: brand.colors.text }}>🛡️ KYC Verification</h2>
-                
+              <div className="rounded-2xl shadow-xl p-6" style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}>
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: brand.colors.text }}>
+                  <ShieldCheck size={22} strokeWidth={2} />
+                  KYC Verification
+                </h2>
+
                 <div className={`p-4 rounded-xl border-2 mb-6 ${getKYCStatusBadge()}`}>
                   <p className="font-semibold">Status: {getKYCStatusText()}</p>
-                  {profile.kyc?.adminNote && (
-                    <p className="text-sm mt-1">Admin Note: {profile.kyc.adminNote}</p>
-                  )}
+                  {profile.kyc?.adminNote && <p className="text-sm mt-1">Admin Note: {profile.kyc.adminNote}</p>}
                   {profile.kyc?.verifiedAt && (
                     <p className="text-sm mt-1">Verified on: {new Date(profile.kyc.verifiedAt).toLocaleDateString()}</p>
                   )}
@@ -557,8 +488,8 @@ const ProfileSettings = () => {
 
                 {profile.kyc?.status === 'verified' ? (
                   <div className="text-center py-8">
-                    <div className="text-6xl mb-4">✅</div>
-                    <h3 className="text-xl font-semibold text-green-600">KYC Verified</h3>
+                    <CheckCircle2 size={64} strokeWidth={1.2} style={{ color: brand.colors.success, margin: '0 auto 16px' }} />
+                    <h3 className="text-xl font-semibold" style={{ color: brand.colors.success }}>KYC Verified</h3>
                     <p style={{ color: brand.colors.textLight }}>Your identity has been verified</p>
                   </div>
                 ) : (
@@ -569,19 +500,9 @@ const ProfileSettings = () => {
                         value={kycData.idType}
                         onChange={(e) => setKycData({ ...kycData, idType: e.target.value })}
                         className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                        style={{
-                          border: `2px solid ${brand.colors.primarySoft}`,
-                          background: brand.colors.background,
-                          color: brand.colors.text,
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = brand.colors.primary;
-                          e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = brand.colors.primarySoft;
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                        onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                        onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                       >
                         <option value="passport">Passport</option>
                         <option value="drivers_license">Driver's License</option>
@@ -597,43 +518,26 @@ const ProfileSettings = () => {
                         value={kycData.idNumber}
                         onChange={(e) => setKycData({ ...kycData, idNumber: e.target.value })}
                         className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                        style={{
-                          border: `2px solid ${brand.colors.primarySoft}`,
-                          background: brand.colors.background,
-                          color: brand.colors.text,
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = brand.colors.primary;
-                          e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = brand.colors.primarySoft;
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                        onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                        onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                         placeholder="Enter your ID number"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-medium mb-1" style={{ color: brand.colors.text }}>Upload Government ID</label>
+                      <label className="block font-medium mb-1 flex items-center gap-2" style={{ color: brand.colors.text }}>
+                        <Upload size={16} />
+                        Upload Government ID
+                      </label>
                       <input
                         type="file"
                         accept="image/*,application/pdf"
                         onChange={(e) => setKycData({ ...kycData, governmentId: e.target.files[0] })}
                         className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                        style={{
-                          border: `2px solid ${brand.colors.primarySoft}`,
-                          background: brand.colors.background,
-                          color: brand.colors.text,
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = brand.colors.primary;
-                          e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = brand.colors.primarySoft;
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                        onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                        onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                         required
                       />
                       <p className="text-sm mt-1" style={{ color: brand.colors.textMuted }}>JPEG, PNG, PDF (Max 10MB)</p>
@@ -648,15 +552,25 @@ const ProfileSettings = () => {
                     <button
                       type="submit"
                       disabled={updating || profile.kyc?.status === 'pending'}
-                      className="w-full py-3 rounded-xl text-white font-semibold transition transform hover:scale-[1.02]"
+                      className="w-full py-3 rounded-xl text-white font-semibold transition transform hover:scale-[1.02] flex items-center justify-center gap-2"
                       style={{
                         background: brand.gradients.primary,
                         opacity: updating || profile.kyc?.status === 'pending' ? 0.6 : 1,
                         cursor: updating || profile.kyc?.status === 'pending' ? 'not-allowed' : 'pointer',
-                        boxShadow: `0 4px 14px ${brand.colors.primarySoft}`
+                        boxShadow: `0 4px 14px ${brand.colors.primarySoft}`,
                       }}
                     >
-                      {updating ? 'Submitting...' : '📤 Submit KYC'}
+                      {updating ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={18} />
+                          Submit KYC
+                        </>
+                      )}
                     </button>
                   </form>
                 )}
@@ -665,57 +579,43 @@ const ProfileSettings = () => {
 
             {/* Security Tab */}
             {activeTab === 'security' && (
-              <div className="rounded-2xl shadow-xl p-6" style={{ 
-                background: brand.colors.surface,
-                border: `1px solid ${brand.colors.primarySoft}`
-              }}>
-                <h2 className="text-xl font-semibold mb-6" style={{ color: brand.colors.text }}>🔒 Change Password</h2>
-                
+              <div className="rounded-2xl shadow-xl p-6" style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}>
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: brand.colors.text }}>
+                  <Lock size={22} strokeWidth={2} />
+                  Change Password
+                </h2>
+
                 <form onSubmit={handlePasswordChange} className="space-y-4">
                   <div>
-                    <label className="block font-medium mb-1" style={{ color: brand.colors.text }}>Current Password</label>
+                    <label className="block font-medium mb-1 flex items-center gap-2" style={{ color: brand.colors.text }}>
+                      <Lock size={16} />
+                      Current Password
+                    </label>
                     <input
                       type="password"
                       value={passwordData.currentPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                      style={{
-                        border: `2px solid ${brand.colors.primarySoft}`,
-                        background: brand.colors.background,
-                        color: brand.colors.text,
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.borderColor = brand.colors.primary;
-                        e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = brand.colors.primarySoft;
-                        e.target.style.boxShadow = 'none';
-                      }}
+                      style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                      onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                      onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block font-medium mb-1" style={{ color: brand.colors.text }}>New Password</label>
+                    <label className="block font-medium mb-1 flex items-center gap-2" style={{ color: brand.colors.text }}>
+                      <KeyRound size={16} />
+                      New Password
+                    </label>
                     <input
                       type="password"
                       value={passwordData.newPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                      style={{
-                        border: `2px solid ${brand.colors.primarySoft}`,
-                        background: brand.colors.background,
-                        color: brand.colors.text,
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.borderColor = brand.colors.primary;
-                        e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = brand.colors.primarySoft;
-                        e.target.style.boxShadow = 'none';
-                      }}
+                      style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                      onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                      onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                       required
                       minLength="6"
                     />
@@ -723,25 +623,18 @@ const ProfileSettings = () => {
                   </div>
 
                   <div>
-                    <label className="block font-medium mb-1" style={{ color: brand.colors.text }}>Confirm New Password</label>
+                    <label className="block font-medium mb-1 flex items-center gap-2" style={{ color: brand.colors.text }}>
+                      <KeyRound size={16} />
+                      Confirm New Password
+                    </label>
                     <input
                       type="password"
                       value={passwordData.confirmPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition"
-                      style={{
-                        border: `2px solid ${brand.colors.primarySoft}`,
-                        background: brand.colors.background,
-                        color: brand.colors.text,
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.borderColor = brand.colors.primary;
-                        e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = brand.colors.primarySoft;
-                        e.target.style.boxShadow = 'none';
-                      }}
+                      style={{ border: `2px solid ${brand.colors.primarySoft}`, background: brand.colors.background, color: brand.colors.text }}
+                      onFocus={(e) => { e.target.style.borderColor = brand.colors.primary; e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`; }}
+                      onBlur={(e) => { e.target.style.borderColor = brand.colors.primarySoft; e.target.style.boxShadow = 'none'; }}
                       required
                     />
                   </div>
@@ -749,15 +642,25 @@ const ProfileSettings = () => {
                   <button
                     type="submit"
                     disabled={updating}
-                    className="w-full py-3 rounded-xl text-white font-semibold transition transform hover:scale-[1.02]"
+                    className="w-full py-3 rounded-xl text-white font-semibold transition transform hover:scale-[1.02] flex items-center justify-center gap-2"
                     style={{
                       background: brand.gradients.primary,
                       opacity: updating ? 0.6 : 1,
                       cursor: updating ? 'not-allowed' : 'pointer',
-                      boxShadow: `0 4px 14px ${brand.colors.primarySoft}`
+                      boxShadow: `0 4px 14px ${brand.colors.primarySoft}`,
                     }}
                   >
-                    {updating ? 'Changing...' : '🔑 Change Password'}
+                    {updating ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" />
+                        Changing...
+                      </>
+                    ) : (
+                      <>
+                        <KeyRound size={18} />
+                        Change Password
+                      </>
+                    )}
                   </button>
                 </form>
               </div>
