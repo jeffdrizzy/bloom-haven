@@ -20,6 +20,8 @@ import MaintenanceWrapper from './MaintenanceWrapper';
 import Swap from './Swap';
 import './App.css';
 import Referral from './Referral';
+import { ThemeProvider } from './ThemeContext';
+
 
 
 const ProtectedRoute = ({ children }) => {
@@ -40,6 +42,7 @@ const AdminRoute = ({ children }) => {
 
 function App() {
   return (
+  <ThemeProvider>
     <Router>
       <Routes>
         {/* Landing Page - Default route */}
@@ -181,6 +184,7 @@ function App() {
 />
       </Routes>
     </Router>
+ </ThemeProvider>
   );
 }
 

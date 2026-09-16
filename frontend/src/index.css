@@ -320,3 +320,190 @@ h1, h2, h3, h4, h5, h6 {
     padding-right: max(12px, env(safe-area-inset-right)) !important;
   }
 }
+
+/* ===== DARK MODE ===== */
+
+/* Smooth transition */
+body, .landing-page, [data-theme] {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode body */
+body.dark-mode {
+  background-color: #12121a !important;
+  color: #e5e5e5 !important;
+}
+
+/* Dark mode background overrides */
+body.dark-mode [style*="background: #FAF9F6"],
+body.dark-mode [style*="background: rgb(250, 249, 246)"] {
+  background-color: #1a1a24 !important;
+}
+
+body.dark-mode [style*="background: #FFFFFF"],
+body.dark-mode [style*="background: white"],
+body.dark-mode [style*="background: rgb(255, 255, 255)"] {
+  background-color: #1e1e2a !important;
+}
+
+body.dark-mode [style*="background: #F8F1E6"],
+body.dark-mode [style*="background: #FCF4E7"] {
+  background-color: #252533 !important;
+}
+
+body.dark-mode [style*="background: #F8F9FA"],
+body.dark-mode [style*="background: #F7F5F0"],
+body.dark-mode [style*="background: #F8FAFB"] {
+  background-color: #252533 !important;
+}
+
+/* Dark mode text overrides */
+body.dark-mode [style*="color: #3D4A3A"],
+body.dark-mode [style*="color: rgb(61, 74, 58)"] {
+  color: #e5e5e5 !important;
+}
+
+body.dark-mode [style*="color: #6B7568"],
+body.dark-mode [style*="color: rgb(107, 117, 104)"] {
+  color: #b8b8b8 !important;
+}
+
+body.dark-mode [style*="color: #8A9385"],
+body.dark-mode [style*="color: rgb(138, 147, 133)"] {
+  color: #9a9a9a !important;
+}
+
+body.dark-mode [style*="color: #2C3E50"] {
+  color: #e5e5e5 !important;
+}
+
+/* Dark mode borders */
+body.dark-mode [style*="border: 1px solid #C5D0BE"],
+body.dark-mode [style*="border: 2px solid #C5D0BE"],
+body.dark-mode [style*="border-color: #C5D0BE"] {
+  border-color: #2e2e3e !important;
+}
+
+body.dark-mode [style*="border: 1px solid #F1F3F5"],
+body.dark-mode [style*="border: 1px solid #E9ECEF"] {
+  border-color: #2e2e3e !important;
+}
+
+/* Dark mode inputs */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+  background-color: #252533 !important;
+  color: #e5e5e5 !important;
+  border-color: #2e2e3e !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+  color: #7a7a7a !important;
+}
+
+/* Dark mode cards */
+body.dark-mode .rounded-2xl,
+body.dark-mode .rounded-xl {
+  background-color: #1e1e2a;
+}
+
+/* Dark mode sidebar/modal */
+body.dark-mode [style*="background: #FAF9F6"],
+body.dark-mode [style*="background: rgb(250, 249, 246)"] {
+  background-color: #1a1a24 !important;
+}
+
+/* Landing page dark mode */
+body.dark-mode .landing-page {
+  background: #12121a !important;
+  color: #e5e5e5 !important;
+}
+
+body.dark-mode .navbar-scrolled {
+  background: rgba(18, 18, 26, 0.95) !important;
+}
+
+body.dark-mode .navbar-link,
+body.dark-mode .logo-text {
+  color: #e5e5e5 !important;
+}
+
+body.dark-mode .hero {
+  background: linear-gradient(180deg, #1a1a24 0%, #12121a 100%) !important;
+}
+
+body.dark-mode .feature-card,
+body.dark-mode .step-card,
+body.dark-mode .testimonial-card,
+body.dark-mode .crypto-list,
+body.dark-mode .crypto-chart-card {
+  background: #1e1e2a !important;
+  border-color: #2e2e3e !important;
+}
+
+body.dark-mode .hero-card {
+  background: rgba(30, 30, 42, 0.95) !important;
+}
+
+body.dark-mode .crypto-item {
+  background: #252533 !important;
+}
+
+body.dark-mode .stats {
+  background: #1a1a24 !important;
+}
+
+body.dark-mode .how-it-works,
+body.dark-mode .testimonials {
+  background: #1a1a24 !important;
+}
+
+body.dark-mode .faq-item {
+  border-color: #2e2e3e !important;
+}
+
+body.dark-mode .faq-question {
+  color: #e5e5e5 !important;
+}
+
+body.dark-mode .faq-answer p {
+  color: #b8b8b8 !important;
+}
+
+body.dark-mode .section-title,
+body.dark-mode .section-subtitle,
+body.dark-mode .hero-title {
+  color: #e5e5e5 !important;
+}
+
+body.dark-mode .hero-subtitle,
+body.dark-mode .balance-label,
+body.dark-mode .crypto-name {
+  color: #b8b8b8 !important;
+}
+
+body.dark-mode .balance-amount,
+body.dark-mode .crypto-value {
+  color: #e5e5e5 !important;
+}
+
+body.dark-mode .mobile-menu {
+  background: #1e1e2a !important;
+}
+
+body.dark-mode .mobile-link {
+  color: #e5e5e5 !important;
+  border-color: #2e2e3e !important;
+}
+
+body.dark-mode .btn-outline {
+  color: #e5e5e5 !important;
+  border-color: #2e2e3e !important;
+}
+
+/* Smooth transition on specific components */
+body.dark-mode * {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}

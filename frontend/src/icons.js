@@ -78,6 +78,8 @@ import {
   Rocket,
   Zap,
   CreditCard,
+Sun,
+  Moon,
 } from 'lucide-react';
 
 export {
@@ -157,6 +159,8 @@ export {
   Rocket,
   Zap,
   CreditCard,
+Sun,
+  Moon,
 };
 
 // Crypto currency icon map

@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from './services/api';
 import { brand } from './brand';
 import NotificationBell from './NotificationBell';
+import ThemeToggle from './ThemeToggle';
+
 import {
   Crown,
   Receipt,
@@ -182,11 +184,16 @@ const AdminLayout = ({ children }) => {
           })}
         </nav>
 
-        {/* Divider */}
+       {/* Divider */}
         <div
           className="border-t mx-4"
           style={{ borderColor: brand.colors.primarySoft }}
         />
+
+        {/* Theme Toggle */}
+        <div className="p-4 pb-0">
+          <ThemeToggle />
+        </div>
 
         {/* Logout */}
         <div className="p-4">
