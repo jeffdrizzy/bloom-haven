@@ -71,6 +71,8 @@ CheckCircle,
 Camera,
   Save,
   FileText,
+Globe,
+  Percent,
   ExternalLink,
 } from 'lucide-react';
 
@@ -144,6 +146,8 @@ CheckCircle,
 Camera,
   Save,
   FileText,
+Globe,
+  Percent,
   ExternalLink,
 };
 
