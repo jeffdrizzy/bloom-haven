@@ -788,3 +788,27 @@ body.dark-mode [data-header] span[style*="color: #8A9385"],
 body.dark-mode [data-header] span[style*="rgb(138, 147, 133)"] {
   color: #A3A3A3 !important;
 }
+/* ===== LIGHT MODE RESET (forces light styles when not in dark mode) ===== */
+
+body:not(.dark-mode) [data-header] {
+  background: rgba(250, 249, 246, 0.95) !important;
+  border-bottom: 1px solid #C5D0BE !important;
+}
+
+body:not(.dark-mode) {
+  background-color: #FAF9F6 !important;
+  color: #3D4A3A !important;
+}
+
+body:not(.dark-mode) input,
+body:not(.dark-mode) textarea,
+body:not(.dark-mode) select {
+  background-color: #FFFFFF !important;
+  color: #3D4A3A !important;
+  border-color: #C5D0BE !important;
+}
+
+body:not(.dark-mode) input::placeholder,
+body:not(.dark-mode) textarea::placeholder {
+  color: #8A9385 !important;
+}

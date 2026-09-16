@@ -18,13 +18,15 @@ export const ThemeProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    // Apply theme to document root
-    document.documentElement.setAttribute('data-theme', theme);
-    
+    const root = document.documentElement;
+    const body = document.body;
+
     if (theme === 'dark') {
-      document.body.classList.add('dark-mode');
+      root.setAttribute('data-theme', 'dark');
+      body.classList.add('dark-mode');
     } else {
-      document.body.classList.remove('dark-mode');
+      root.setAttribute('data-theme', 'light');
+      body.classList.remove('dark-mode');
     }
 
     // Save to localStorage
