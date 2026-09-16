@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from './services/api';
 import api from './services/api';
 import { brand } from './brand';
 import AdminLayout from './AdminLayout';
@@ -11,11 +10,8 @@ import {
   Ban,
   Snowflake,
   Plus,
-  ShieldCheck,
   Loader2,
   AlertTriangle,
-  CheckCircle,
-  XCircle,
   Crown,
 } from './icons';
 
@@ -325,7 +321,7 @@ const AdminDashboard = () => {
                               className="px-3 py-1 rounded text-white text-xs font-medium transition hover:opacity-90 flex items-center gap-1"
                               style={{ background: brand.colors.success }}
                             >
-                              <CheckCircle size={12} />
+                              <CheckCircle2 size={12} />
                               Approve
                             </button>
                           )}
@@ -356,7 +352,7 @@ const AdminDashboard = () => {
                               className="px-3 py-1 rounded text-white text-xs font-medium transition hover:opacity-90 flex items-center gap-1"
                               style={{ background: brand.colors.success }}
                             >
-                              <CheckCircle size={12} />
+                              <CheckCircle2 size={12} />
                               Unblacklist
                             </button>
                           ) : (
