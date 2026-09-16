@@ -1,5 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Wallet,
+  Bitcoin,
+  ShieldCheck,
+  Gift,
+  BarChart3,
+  Globe,
+  ArrowRight,
+  CheckCircle2,
+  Star,
+  Play,
+  Sparkles,
+  Rocket,
+  TrendingUp,
+  TrendingDown,
+  Zap,
+  CreditCard,
+  Menu,
+  X,
+  CircleDollarSign,
+  Hexagon,
+} from './icons';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -10,27 +32,24 @@ const LandingPage = () => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
 
-  // Brand Config
   const brand = {
     name: 'Bloom Haven',
     tagline: 'Where Your Wealth Blossoms',
-    description: 'Modern banking and cryptocurrency management in one secure sanctuary.'
+    description: 'Modern banking and cryptocurrency management in one secure sanctuary.',
   };
 
-  // Crypto data
   const cryptos = [
-    { symbol: 'BTC', name: 'Bitcoin', icon: '₿', color: '#F7931A' },
-    { symbol: 'ETH', name: 'Ethereum', icon: 'Ξ', color: '#627EEA' },
-    { symbol: 'USDT', name: 'Tether', icon: '₮', color: '#26A17B' }
+    { symbol: 'BTC', name: 'Bitcoin', Icon: Bitcoin, color: '#F7931A' },
+    { symbol: 'ETH', name: 'Ethereum', Icon: Hexagon, color: '#627EEA' },
+    { symbol: 'USDT', name: 'Tether', Icon: CircleDollarSign, color: '#26A17B' },
   ];
 
   const [prices] = useState({
     BTC: { price: 65420, change: 2.4, volume: '24.5B' },
     ETH: { price: 3480, change: 5.1, volume: '12.8B' },
-    USDT: { price: 1.00, change: 0.01, volume: '45.2B' }
+    USDT: { price: 1.0, change: 0.01, volume: '45.2B' },
   });
 
-  // Scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -39,25 +58,18 @@ const LandingPage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Stats observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
+        if (entry.isIntersecting) setIsVisible(true);
       },
       { threshold: 0.3 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
+    if (sectionRef.current) observer.observe(sectionRef.current);
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
-      }
+      if (sectionRef.current) observer.unobserve(sectionRef.current);
     };
   }, []);
 
@@ -66,42 +78,42 @@ const LandingPage = () => {
     { label: 'Features', href: '#features' },
     { label: 'How It Works', href: '#how-it-works' },
     { label: 'Crypto', href: '#crypto' },
-    { label: 'FAQ', href: '#faq' }
+    { label: 'FAQ', href: '#faq' },
   ];
 
   const features = [
-    { icon: '🏦', title: 'Smart Banking', description: 'Manage your finances with intelligent tools designed for modern living.', color: 'feature-blue' },
-    { icon: '₿', title: 'Crypto Integration', description: 'Buy, sell, and hold Bitcoin, Ethereum, and USDT seamlessly.', color: 'feature-orange' },
-    { icon: '🔒', title: 'Bank-Level Security', description: 'Your assets are protected with military-grade encryption and 2FA.', color: 'feature-green' },
-    { icon: '🎁', title: 'Gift Card Exchange', description: 'Convert your gift cards to cash instantly with our verification system.', color: 'feature-purple' },
-    { icon: '📊', title: 'Portfolio Tracking', description: 'Monitor your investments and track performance in real-time.', color: 'feature-pink' },
-    { icon: '🌍', title: 'Global Access', description: 'Access your account from anywhere in the world, 24/7.', color: 'feature-teal' }
+    { Icon: Wallet, title: 'Smart Banking', description: 'Manage your finances with intelligent tools designed for modern living.', color: 'feature-blue' },
+    { Icon: Bitcoin, title: 'Crypto Integration', description: 'Buy, sell, and hold Bitcoin, Ethereum, and USDT seamlessly.', color: 'feature-orange' },
+    { Icon: ShieldCheck, title: 'Bank-Level Security', description: 'Your assets are protected with military-grade encryption and 2FA.', color: 'feature-green' },
+    { Icon: Gift, title: 'Gift Card Exchange', description: 'Convert your gift cards to cash instantly with our verification system.', color: 'feature-purple' },
+    { Icon: BarChart3, title: 'Portfolio Tracking', description: 'Monitor your investments and track performance in real-time.', color: 'feature-pink' },
+    { Icon: Globe, title: 'Global Access', description: 'Access your account from anywhere in the world, 24/7.', color: 'feature-teal' },
   ];
 
   const stats = [
     { value: 100000, suffix: '+', label: 'Active Users' },
     { value: 250000000, prefix: '$', suffix: '+', label: 'Assets Managed' },
     { value: 150, suffix: '+', label: 'Countries Served' },
-    { value: 99.9, suffix: '%', label: 'Uptime' }
+    { value: 99.9, suffix: '%', label: 'Uptime' },
   ];
 
   const steps = [
-    { number: '01', icon: '📝', title: 'Create Your Account', description: 'Sign up in minutes with just your email. No paperwork, no hassle.' },
-    { number: '02', icon: '💳', title: 'Fund Your Wallet', description: 'Deposit via bank transfer, crypto, or gift cards.' },
-    { number: '03', icon: '🚀', title: 'Start Growing', description: 'Trade, invest, and manage your portfolio with confidence.' }
+    { number: '01', Icon: Rocket, title: 'Create Your Account', description: 'Sign up in minutes with just your email. No paperwork, no hassle.' },
+    { number: '02', Icon: CreditCard, title: 'Fund Your Wallet', description: 'Deposit via bank transfer, crypto, or gift cards.' },
+    { number: '03', Icon: TrendingUp, title: 'Start Growing', description: 'Trade, invest, and manage your portfolio with confidence.' },
   ];
 
   const faqs = [
     { question: 'Is Bloom Haven safe and secure?', answer: 'Yes! We use bank-level 256-bit encryption, two-factor authentication, and cold storage for crypto assets. Your security is our top priority.' },
     { question: 'How do I deposit funds into my account?', answer: 'You can deposit funds via bank transfer, cryptocurrency (BTC, ETH, USDT), or by exchanging gift cards. All deposits are processed securely and efficiently.' },
-    { question: 'What cryptocurrencies do you support?', answer: 'We currently support Bitcoin (BTC), Ethereum (ETH), and Tether (USDT). We\'re constantly evaluating new cryptocurrencies to add based on community demand.' },
-    { question: 'How does the gift card exchange work?', answer: 'Submit your gift card details through our platform. Our team verifies the card, and once approved, the value is instantly credited to your account balance.' }
+    { question: 'What cryptocurrencies do you support?', answer: "We currently support Bitcoin (BTC), Ethereum (ETH), and Tether (USDT). We're constantly evaluating new cryptocurrencies to add based on community demand." },
+    { question: 'How does the gift card exchange work?', answer: 'Submit your gift card details through our platform. Our team verifies the card, and once approved, the value is instantly credited to your account balance.' },
   ];
 
   const testimonials = [
     { name: 'Sarah Johnson', role: 'Small Business Owner', avatar: 'SJ', content: 'Bloom Haven has completely transformed how I manage my business finances. The crypto integration is seamless!', rating: 5 },
     { name: 'Michael Chen', role: 'Crypto Investor', avatar: 'MC', content: 'Finally, a platform that combines traditional banking with crypto. The security features give me peace of mind.', rating: 5 },
-    { name: 'Emily Rodriguez', role: 'Freelancer', avatar: 'ER', content: 'The gift card exchange feature is a game-changer. I can convert my gift cards to cash instantly!', rating: 5 }
+    { name: 'Emily Rodriguez', role: 'Freelancer', avatar: 'ER', content: 'The gift card exchange feature is a game-changer. I can convert my gift cards to cash instantly!', rating: 5 },
   ];
 
   return (
@@ -123,27 +135,42 @@ const LandingPage = () => {
           </div>
 
           <div className="navbar-actions">
-            <button onClick={() => navigate('/login')} className="btn btn-outline">Sign In</button>
-            <button onClick={() => navigate('/register')} className="btn btn-primary">Get Started</button>
+            <button onClick={() => navigate('/login')} className="btn btn-outline">
+              Sign In
+            </button>
+            <button onClick={() => navigate('/register')} className="btn btn-primary">
+              Get Started
+            </button>
           </div>
 
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            <span className={`hamburger ${isMobileMenuOpen ? 'active' : ''}`}>
-              <span></span><span></span><span></span>
-            </span>
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
         {isMobileMenuOpen && (
           <div className="mobile-menu">
             {navLinks.map((link) => (
-              <a key={link.href} href={link.href} className="mobile-link" onClick={() => setIsMobileMenuOpen(false)}>
+              <a
+                key={link.href}
+                href={link.href}
+                className="mobile-link"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
                 {link.label}
               </a>
             ))}
             <div className="mobile-actions">
-              <button onClick={() => navigate('/login')} className="btn btn-outline btn-block">Sign In</button>
-              <button onClick={() => navigate('/register')} className="btn btn-primary btn-block">Get Started</button>
+              <button onClick={() => navigate('/login')} className="btn btn-outline btn-block">
+                Sign In
+              </button>
+              <button onClick={() => navigate('/register')} className="btn btn-primary btn-block">
+                Get Started
+              </button>
             </div>
           </div>
         )}
@@ -157,10 +184,7 @@ const LandingPage = () => {
         </div>
         <div className="hero-container">
           <div className="hero-content">
-            {/* Bloom Haven Heading */}
-            <h1 className="hero-brand-heading">
-              Bloom Haven
-            </h1>
+            <h1 className="hero-brand-heading">Bloom Haven</h1>
             <div className="hero-badge">
               <span className="badge-dot"></span>
               Trusted by 100,000+ users worldwide
@@ -174,38 +198,54 @@ const LandingPage = () => {
             </p>
             <div className="hero-actions">
               <button onClick={() => navigate('/register')} className="btn btn-primary btn-lg">
-                Start Growing Today <span className="btn-arrow">→</span>
+                Start Growing Today <ArrowRight size={20} className="btn-arrow" />
               </button>
               <a href="#how-it-works" className="btn btn-ghost btn-lg">
-                <span className="play-icon">▶</span> Watch How It Works
+                <Play size={18} className="play-icon" /> Watch How It Works
               </a>
             </div>
           </div>
           <div className="hero-visual">
             <div className="hero-card">
               <div className="hero-card-header">
-                <div className="card-brand"><span>🌸</span> {brand.name}</div>
+                <div className="card-brand">
+                  <span>🌸</span> {brand.name}
+                </div>
                 <span className="card-status">● Live</span>
               </div>
               <div className="hero-card-body">
                 <div className="balance-section">
                   <span className="balance-label">Total Balance</span>
                   <span className="balance-amount">$24,562.00</span>
-                  <span className="balance-change positive">+12.5% this month</span>
+                  <span className="balance-change positive">
+                    <TrendingUp size={14} /> +12.5% this month
+                  </span>
                 </div>
                 <div className="crypto-grid">
-                  {cryptos.map((crypto) => (
-                    <div key={crypto.symbol} className="crypto-item">
-                      <div className="crypto-icon" style={{ color: crypto.color }}>{crypto.icon}</div>
-                      <div className="crypto-info">
-                        <span className="crypto-name">{crypto.name}</span>
-                        <span className="crypto-value">${prices[crypto.symbol].price.toLocaleString()}</span>
+                  {cryptos.map((crypto) => {
+                    const IconComponent = crypto.Icon;
+                    return (
+                      <div key={crypto.symbol} className="crypto-item">
+                        <div className="crypto-icon" style={{ color: crypto.color }}>
+                          <IconComponent size={20} strokeWidth={2} />
+                        </div>
+                        <div className="crypto-info">
+                          <span className="crypto-name">{crypto.name}</span>
+                          <span className="crypto-value">
+                            ${prices[crypto.symbol].price.toLocaleString()}
+                          </span>
+                        </div>
+                        <span
+                          className={`crypto-change ${
+                            prices[crypto.symbol].change >= 0 ? 'positive' : 'negative'
+                          }`}
+                        >
+                          {prices[crypto.symbol].change >= 0 ? '+' : ''}
+                          {prices[crypto.symbol].change}%
+                        </span>
                       </div>
-                      <span className={`crypto-change ${prices[crypto.symbol].change >= 0 ? 'positive' : 'negative'}`}>
-                        {prices[crypto.symbol].change >= 0 ? '+' : ''}{prices[crypto.symbol].change}%
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -236,17 +276,26 @@ const LandingPage = () => {
         <div className="container">
           <div className="section-header">
             <span className="section-tag">Features</span>
-            <h2 className="section-title">Everything You Need to <span className="gradient-text">Thrive</span></h2>
-            <p className="section-subtitle">Powerful tools and features designed to help you manage, grow, and protect your wealth.</p>
+            <h2 className="section-title">
+              Everything You Need to <span className="gradient-text">Thrive</span>
+            </h2>
+            <p className="section-subtitle">
+              Powerful tools and features designed to help you manage, grow, and protect your wealth.
+            </p>
           </div>
           <div className="features-grid">
-            {features.map((feature, index) => (
-              <div key={index} className={`feature-card ${feature.color}`}>
-                <div className="feature-icon">{feature.icon}</div>
-                <h3 className="feature-title">{feature.title}</h3>
-                <p className="feature-description">{feature.description}</p>
-              </div>
-            ))}
+            {features.map((feature, index) => {
+              const IconComponent = feature.Icon;
+              return (
+                <div key={index} className={`feature-card ${feature.color}`}>
+                  <div className="feature-icon">
+                    <IconComponent size={32} strokeWidth={1.8} />
+                  </div>
+                  <h3 className="feature-title">{feature.title}</h3>
+                  <p className="feature-description">{feature.description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -256,18 +305,27 @@ const LandingPage = () => {
         <div className="container">
           <div className="section-header">
             <span className="section-tag">Getting Started</span>
-            <h2 className="section-title">Three Simple Steps to <span className="gradient-text">Financial Freedom</span></h2>
-            <p className="section-subtitle">Start your journey with Bloom Haven in just a few minutes.</p>
+            <h2 className="section-title">
+              Three Simple Steps to <span className="gradient-text">Financial Freedom</span>
+            </h2>
+            <p className="section-subtitle">
+              Start your journey with Bloom Haven in just a few minutes.
+            </p>
           </div>
           <div className="steps-grid">
-            {steps.map((step, index) => (
-              <div key={index} className="step-card">
-                <div className="step-number">{step.number}</div>
-                <div className="step-icon">{step.icon}</div>
-                <h3 className="step-title">{step.title}</h3>
-                <p className="step-description">{step.description}</p>
-              </div>
-            ))}
+            {steps.map((step, index) => {
+              const IconComponent = step.Icon;
+              return (
+                <div key={index} className="step-card">
+                  <div className="step-number">{step.number}</div>
+                  <div className="step-icon">
+                    <IconComponent size={40} strokeWidth={1.5} />
+                  </div>
+                  <h3 className="step-title">{step.title}</h3>
+                  <p className="step-description">{step.description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -277,42 +335,92 @@ const LandingPage = () => {
         <div className="container">
           <div className="section-header">
             <span className="section-tag">Cryptocurrency</span>
-            <h2 className="section-title">Trade Popular <span className="gradient-text">Cryptocurrencies</span></h2>
-            <p className="section-subtitle">Access the most popular digital assets with real-time market data.</p>
+            <h2 className="section-title">
+              Trade Popular <span className="gradient-text">Cryptocurrencies</span>
+            </h2>
+            <p className="section-subtitle">
+              Access the most popular digital assets with real-time market data.
+            </p>
           </div>
           <div className="crypto-showcase-grid">
             <div className="crypto-list">
-              {cryptos.map((crypto) => (
-                <button key={crypto.symbol} className={`crypto-list-item ${activeCrypto === crypto.symbol ? 'active' : ''}`} onClick={() => setActiveCrypto(crypto.symbol)}>
-                  <div className="crypto-list-icon" style={{ background: `${crypto.color}20`, color: crypto.color }}>{crypto.icon}</div>
-                  <div className="crypto-list-info">
-                    <span className="crypto-list-name">{crypto.name}</span>
-                    <span className="crypto-list-symbol">{crypto.symbol}</span>
-                  </div>
-                  <div className="crypto-list-price">
-                    <span className="crypto-list-value">${prices[crypto.symbol].price.toLocaleString()}</span>
-                    <span className={`crypto-list-change ${prices[crypto.symbol].change >= 0 ? 'positive' : 'negative'}`}>
-                      {prices[crypto.symbol].change >= 0 ? '+' : ''}{prices[crypto.symbol].change}%
-                    </span>
-                  </div>
-                </button>
-              ))}
+              {cryptos.map((crypto) => {
+                const IconComponent = crypto.Icon;
+                return (
+                  <button
+                    key={crypto.symbol}
+                    className={`crypto-list-item ${
+                      activeCrypto === crypto.symbol ? 'active' : ''
+                    }`}
+                    onClick={() => setActiveCrypto(crypto.symbol)}
+                  >
+                    <div
+                      className="crypto-list-icon"
+                      style={{ background: `${crypto.color}20`, color: crypto.color }}
+                    >
+                      <IconComponent size={22} strokeWidth={2} />
+                    </div>
+                    <div className="crypto-list-info">
+                      <span className="crypto-list-name">{crypto.name}</span>
+                      <span className="crypto-list-symbol">{crypto.symbol}</span>
+                    </div>
+                    <div className="crypto-list-price">
+                      <span className="crypto-list-value">
+                        ${prices[crypto.symbol].price.toLocaleString()}
+                      </span>
+                      <span
+                        className={`crypto-list-change ${
+                          prices[crypto.symbol].change >= 0 ? 'positive' : 'negative'
+                        }`}
+                      >
+                        {prices[crypto.symbol].change >= 0 ? '+' : ''}
+                        {prices[crypto.symbol].change}%
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
             <div className="crypto-chart-card">
               <div className="chart-header">
                 <div className="chart-info">
-                  <div className="chart-crypto-icon" style={{ background: `${cryptos.find(c => c.symbol === activeCrypto).color}20`, color: cryptos.find(c => c.symbol === activeCrypto).color }}>
-                    {cryptos.find(c => c.symbol === activeCrypto).icon}
-                  </div>
+                  {(() => {
+                    const activeCryptoData = cryptos.find((c) => c.symbol === activeCrypto);
+                    const ActiveIcon = activeCryptoData.Icon;
+                    return (
+                      <div
+                        className="chart-crypto-icon"
+                        style={{
+                          background: `${activeCryptoData.color}20`,
+                          color: activeCryptoData.color,
+                        }}
+                      >
+                        <ActiveIcon size={24} strokeWidth={2} />
+                      </div>
+                    );
+                  })()}
                   <div>
-                    <h3 className="chart-title">{cryptos.find(c => c.symbol === activeCrypto).name}</h3>
+                    <h3 className="chart-title">
+                      {cryptos.find((c) => c.symbol === activeCrypto).name}
+                    </h3>
                     <span className="chart-symbol">{activeCrypto}/USD</span>
                   </div>
                 </div>
                 <div className="chart-price">
-                  <span className="chart-price-value">${prices[activeCrypto].price.toLocaleString()}</span>
-                  <span className={`chart-price-change ${prices[activeCrypto].change >= 0 ? 'positive' : 'negative'}`}>
-                    {prices[activeCrypto].change >= 0 ? '▲' : '▼'} {Math.abs(prices[activeCrypto].change)}%
+                  <span className="chart-price-value">
+                    ${prices[activeCrypto].price.toLocaleString()}
+                  </span>
+                  <span
+                    className={`chart-price-change ${
+                      prices[activeCrypto].change >= 0 ? 'positive' : 'negative'
+                    }`}
+                  >
+                    {prices[activeCrypto].change >= 0 ? (
+                      <TrendingUp size={14} />
+                    ) : (
+                      <TrendingDown size={14} />
+                    )}{' '}
+                    {Math.abs(prices[activeCrypto].change)}%
                   </span>
                 </div>
               </div>
@@ -325,11 +433,38 @@ const LandingPage = () => {
                     </linearGradient>
                   </defs>
                   {[0, 1, 2, 3, 4].map((i) => (
-                    <line key={i} x1="0" y1={i * 50} x2="400" y2={i * 50} stroke="#E9ECEF" strokeWidth="1" />
+                    <line
+                      key={i}
+                      x1="0"
+                      y1={i * 50}
+                      x2="400"
+                      y2={i * 50}
+                      stroke="#E9ECEF"
+                      strokeWidth="1"
+                    />
                   ))}
-                  <path d="M0,150 C50,120 75,160 100,140 C150,100 175,130 200,110 C250,70 275,100 300,80 C325,60 350,90 400,50 L400,200 L0,200 Z" fill="url(#chartGradient)" />
-                  <path d="M0,150 C50,120 75,160 100,140 C150,100 175,130 200,110 C250,70 275,100 300,80 C325,60 350,90 400,50" fill="none" stroke="#4CAF50" strokeWidth="3" strokeLinecap="round" />
-                  {[[0, 150], [50, 120], [100, 140], [150, 100], [200, 110], [250, 70], [300, 80], [350, 90], [400, 50]].map(([x, y], i) => (
+                  <path
+                    d="M0,150 C50,120 75,160 100,140 C150,100 175,130 200,110 C250,70 275,100 300,80 C325,60 350,90 400,50 L400,200 L0,200 Z"
+                    fill="url(#chartGradient)"
+                  />
+                  <path
+                    d="M0,150 C50,120 75,160 100,140 C150,100 175,130 200,110 C250,70 275,100 300,80 C325,60 350,90 400,50"
+                    fill="none"
+                    stroke="#4CAF50"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                  />
+                  {[
+                    [0, 150],
+                    [50, 120],
+                    [100, 140],
+                    [150, 100],
+                    [200, 110],
+                    [250, 70],
+                    [300, 80],
+                    [350, 90],
+                    [400, 50],
+                  ].map(([x, y], i) => (
                     <circle key={i} cx={x} cy={y} r="4" fill="#4CAF50" stroke="white" strokeWidth="2" />
                   ))}
                 </svg>
@@ -344,8 +479,12 @@ const LandingPage = () => {
         <div className="container">
           <div className="section-header">
             <span className="section-tag">Testimonials</span>
-            <h2 className="section-title">What Our <span className="gradient-text">Community Says</span></h2>
-            <p className="section-subtitle">Join thousands of satisfied users who trust Bloom Haven with their wealth.</p>
+            <h2 className="section-title">
+              What Our <span className="gradient-text">Community Says</span>
+            </h2>
+            <p className="section-subtitle">
+              Join thousands of satisfied users who trust Bloom Haven with their wealth.
+            </p>
           </div>
           <div className="testimonials-grid">
             {testimonials.map((testimonial, index) => (
@@ -357,7 +496,11 @@ const LandingPage = () => {
                     <span className="testimonial-role">{testimonial.role}</span>
                   </div>
                 </div>
-                <div className="testimonial-rating">{'★'.repeat(testimonial.rating)}</div>
+                <div className="testimonial-rating">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} size={14} fill="currentColor" />
+                  ))}
+                </div>
                 <p className="testimonial-content">"{testimonial.content}"</p>
               </div>
             ))}
@@ -370,17 +513,26 @@ const LandingPage = () => {
         <div className="container">
           <div className="section-header">
             <span className="section-tag">FAQ</span>
-            <h2 className="section-title">Frequently Asked <span className="gradient-text">Questions</span></h2>
+            <h2 className="section-title">
+              Frequently Asked <span className="gradient-text">Questions</span>
+            </h2>
             <p className="section-subtitle">Got questions? We've got answers.</p>
           </div>
           <div className="faq-list">
             {faqs.map((faq, index) => (
               <div key={index} className={`faq-item ${openFaqIndex === index ? 'open' : ''}`}>
-                <button className="faq-question" onClick={() => setOpenFaqIndex(openFaqIndex === index ? -1 : index)}>
+                <button
+                  className="faq-question"
+                  onClick={() => setOpenFaqIndex(openFaqIndex === index ? -1 : index)}
+                >
                   <span>{faq.question}</span>
-                  <span className="faq-icon">{openFaqIndex === index ? '−' : '+'}</span>
+                  <span className="faq-icon">
+                    {openFaqIndex === index ? <X size={18} /> : <ArrowRight size={18} />}
+                  </span>
                 </button>
-                <div className="faq-answer"><p>{faq.answer}</p></div>
+                <div className="faq-answer">
+                  <p>{faq.answer}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -392,19 +544,32 @@ const LandingPage = () => {
         <div className="container">
           <div className="cta-card">
             <div className="cta-content">
-              <span className="cta-flower">🌸</span>
+              <div className="cta-flower">
+                <Sparkles size={48} strokeWidth={1.5} />
+              </div>
               <h2 className="cta-title">Ready to Start Your Journey?</h2>
-              <p className="cta-subtitle">Join thousands of users who are growing their wealth with Bloom Haven. Create your free account today!</p>
+              <p className="cta-subtitle">
+                Join thousands of users who are growing their wealth with Bloom Haven. Create
+                your free account today!
+              </p>
               <div className="cta-actions">
                 <button onClick={() => navigate('/register')} className="btn btn-white btn-lg">
-                  Get Started Free <span className="btn-arrow">→</span>
+                  Get Started Free <ArrowRight size={20} className="btn-arrow" />
                 </button>
-                <button onClick={() => navigate('/login')} className="btn btn-outline-white btn-lg">Sign In</button>
+                <button onClick={() => navigate('/login')} className="btn btn-outline-white btn-lg">
+                  Sign In
+                </button>
               </div>
               <div className="cta-benefits">
-                <span>✓ No hidden fees</span>
-                <span>✓ 2-minute setup</span>
-                <span>✓ 24/7 support</span>
+                <span>
+                  <CheckCircle2 size={16} /> No hidden fees
+                </span>
+                <span>
+                  <Zap size={16} /> 2-minute setup
+                </span>
+                <span>
+                  <ShieldCheck size={16} /> 24/7 support
+                </span>
               </div>
             </div>
           </div>
@@ -420,7 +585,10 @@ const LandingPage = () => {
                 <span className="logo-flower">🌸</span>
                 <span className="logo-text">{brand.name}</span>
               </a>
-              <p className="footer-description">Where your wealth blossoms. Modern banking and cryptocurrency management in one secure sanctuary.</p>
+              <p className="footer-description">
+                Where your wealth blossoms. Modern banking and cryptocurrency management in
+                one secure sanctuary.
+              </p>
             </div>
             <div className="footer-links">
               <h4>Product</h4>
@@ -442,7 +610,9 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; {new Date().getFullYear()} {brand.name}. All rights reserved.</p>
+            <p>
+              &copy; {new Date().getFullYear()} {brand.name}. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
@@ -512,14 +682,10 @@ const LandingPage = () => {
           background-clip: text;
         }
         @media (max-width: 768px) {
-          .hero-brand-heading {
-            font-size: 2.8rem;
-          }
+          .hero-brand-heading { font-size: 2.8rem; }
         }
         @media (max-width: 480px) {
-          .hero-brand-heading {
-            font-size: 2.2rem;
-          }
+          .hero-brand-heading { font-size: 2.2rem; }
         }
 
         /* ===== BUTTONS ===== */
@@ -584,15 +750,14 @@ const LandingPage = () => {
         .btn-arrow { transition: transform 0.3s ease; display: inline-block; }
         .btn:hover .btn-arrow { transform: translateX(4px); }
         .play-icon {
-          display: inline-block;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           width: 32px;
           height: 32px;
           border-radius: 50%;
           background: rgba(76, 175, 80, 0.15);
           color: #4CAF50;
-          text-align: center;
-          line-height: 32px;
-          font-size: 12px;
         }
 
         /* ===== NAVBAR ===== */
@@ -630,7 +795,11 @@ const LandingPage = () => {
           color: #2C3E50;
         }
         .logo-flower { font-size: 1.6rem; }
-        .logo-text { background: linear-gradient(135deg, #4CAF50, #2196F3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo-text {
+          background: linear-gradient(135deg, #4CAF50, #2196F3);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
         .navbar-links { display: flex; gap: 32px; align-items: center; }
         .navbar-link {
           text-decoration: none;
@@ -641,18 +810,14 @@ const LandingPage = () => {
         }
         .navbar-link:hover { color: #4CAF50; }
         .navbar-actions { display: flex; gap: 12px; align-items: center; }
-        .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
-        .hamburger { display: flex; flex-direction: column; gap: 4px; width: 24px; }
-        .hamburger span {
-          display: block;
-          height: 2.5px;
-          background: #2C3E50;
-          border-radius: 4px;
-          transition: all 0.3s ease;
+        .mobile-menu-btn {
+          display: none;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px;
+          color: #2C3E50;
         }
-        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
-        .hamburger.active span:nth-child(2) { opacity: 0; }
-        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
 
         .mobile-menu {
           display: none;
@@ -662,7 +827,6 @@ const LandingPage = () => {
           flex-direction: column;
           gap: 16px;
         }
-        .mobile-menu.open { display: flex; }
         .mobile-link {
           text-decoration: none;
           color: #2C3E50;
@@ -768,7 +932,7 @@ const LandingPage = () => {
         .balance-section { margin-bottom: 20px; }
         .balance-label { display: block; font-size: 0.85rem; color: #6c757d; }
         .balance-amount { font-size: 2rem; font-weight: 700; color: #2C3E50; }
-        .balance-change { font-size: 0.85rem; font-weight: 500; }
+        .balance-change { font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
         .balance-change.positive { color: #4CAF50; }
         .balance-change.negative { color: #dc3545; }
 
@@ -781,7 +945,7 @@ const LandingPage = () => {
           background: #F8FAFB;
           border-radius: 12px;
         }
-        .crypto-icon { font-size: 1.2rem; font-weight: 700; width: 28px; text-align: center; }
+        .crypto-icon { display: flex; align-items: center; justify-content: center; width: 28px; }
         .crypto-info { flex: 1; }
         .crypto-name { display: block; font-size: 0.85rem; font-weight: 600; color: #2C3E50; }
         .crypto-value { font-size: 0.8rem; color: #6c757d; }
@@ -802,10 +966,7 @@ const LandingPage = () => {
         }
 
         /* ===== STATS ===== */
-        .stats {
-          padding: 60px 0;
-          background: white;
-        }
+        .stats { padding: 60px 0; background: white; }
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
@@ -840,7 +1001,7 @@ const LandingPage = () => {
           border: 1px solid #F1F3F5;
         }
         .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
-        .feature-icon { font-size: 2.4rem; margin-bottom: 16px; }
+        .feature-icon { margin-bottom: 16px; display: flex; }
         .feature-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
         .feature-description { color: #6c757d; line-height: 1.6; font-size: 0.95rem; }
         .feature-card.feature-blue .feature-icon { color: #2196F3; }
@@ -875,7 +1036,7 @@ const LandingPage = () => {
           top: 12px;
           right: 20px;
         }
-        .step-icon { font-size: 2.8rem; margin-bottom: 12px; }
+        .step-icon { margin-bottom: 12px; display: flex; justify-content: center; color: #4CAF50; }
         .step-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
         .step-description { color: #6c757d; line-height: 1.6; }
         @media (max-width: 768px) { .steps-grid { grid-template-columns: 1fr; } }
@@ -918,8 +1079,6 @@ const LandingPage = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.2rem;
-          font-weight: 700;
         }
         .crypto-list-info { flex: 1; }
         .crypto-list-name { display: block; font-weight: 600; font-size: 0.95rem; color: #2C3E50; }
@@ -951,14 +1110,12 @@ const LandingPage = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.4rem;
-          font-weight: 700;
         }
         .chart-title { font-size: 1.1rem; font-weight: 600; color: #2C3E50; margin: 0; }
         .chart-symbol { font-size: 0.8rem; color: #6c757d; }
         .chart-price { text-align: right; }
         .chart-price-value { display: block; font-size: 1.4rem; font-weight: 700; color: #2C3E50; }
-        .chart-price-change { font-size: 0.85rem; font-weight: 500; }
+        .chart-price-change { font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
         .chart-price-change.positive { color: #4CAF50; }
         .chart-price-change.negative { color: #dc3545; }
         .chart-area { margin: 16px 0; }
@@ -994,7 +1151,7 @@ const LandingPage = () => {
         }
         .testimonial-name { font-weight: 600; color: #2C3E50; margin: 0; }
         .testimonial-role { font-size: 0.85rem; color: #6c757d; }
-        .testimonial-rating { color: #F4B400; font-size: 0.9rem; margin-bottom: 8px; }
+        .testimonial-rating { color: #F4B400; margin-bottom: 8px; display: flex; gap: 2px; }
         .testimonial-content { color: #2C3E50; line-height: 1.7; font-style: italic; }
         @media (max-width: 992px) { .testimonials-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 576px) { .testimonials-grid { grid-template-columns: 1fr; } }
@@ -1022,8 +1179,8 @@ const LandingPage = () => {
           text-align: left;
         }
         .faq-question:hover { color: #4CAF50; }
-        .faq-icon { font-size: 1.4rem; color: #6c757d; transition: transform 0.3s; }
-        .faq-item.open .faq-icon { transform: rotate(180deg); }
+        .faq-icon { color: #6c757d; transition: transform 0.3s; display: flex; }
+        .faq-item.open .faq-icon { transform: rotate(90deg); }
         .faq-answer {
           max-height: 0;
           overflow: hidden;
@@ -1046,7 +1203,12 @@ const LandingPage = () => {
           overflow: hidden;
         }
         .cta-content { position: relative; z-index: 1; }
-        .cta-flower { font-size: 3rem; display: block; margin-bottom: 16px; }
+        .cta-flower {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 16px;
+          color: white;
+        }
         .cta-title { font-size: 2.4rem; font-weight: 700; color: white; margin-bottom: 12px; }
         .cta-subtitle { font-size: 1.1rem; color: rgba(255,255,255,0.85); max-width: 600px; margin: 0 auto 32px; line-height: 1.6; }
         .cta-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
@@ -1058,7 +1220,7 @@ const LandingPage = () => {
           color: rgba(255,255,255,0.85);
           font-size: 0.95rem;
         }
-        .cta-benefits span { display: flex; align-items: center; gap: 6px; }
+        .cta-benefits span { display: inline-flex; align-items: center; gap: 6px; }
         @media (max-width: 576px) {
           .cta-card { padding: 40px 24px; }
           .cta-title { font-size: 1.8rem; }
@@ -1087,7 +1249,11 @@ const LandingPage = () => {
           font-size: 1.4rem;
           color: white;
         }
-        .footer-logo .logo-text { background: linear-gradient(135deg, #4CAF50, #2196F3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .footer-logo .logo-text {
+          background: linear-gradient(135deg, #4CAF50, #2196F3);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
         .footer-description { font-size: 0.95rem; line-height: 1.7; margin-top: 12px; max-width: 320px; }
         .footer-links h4 { color: white; font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
         .footer-links a {
@@ -1107,7 +1273,10 @@ const LandingPage = () => {
           color: rgba(255,255,255,0.4);
         }
         @media (max-width: 992px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 576px) { .footer-grid { grid-template-columns: 1fr; text-align: center; } .footer-description { margin: 12px auto; } }
+        @media (max-width: 576px) {
+          .footer-grid { grid-template-columns: 1fr; text-align: center; }
+          .footer-description { margin: 12px auto; }
+        }
       `}</style>
     </div>
   );
