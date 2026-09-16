@@ -11,18 +11,15 @@ import AdminKYC from './AdminKYC';
 import AdminSettings from './AdminSettings';
 import Deposit from './Deposit';
 import Withdraw from './Withdraw';
+import Swap from './Swap';
 import TransactionHistory from './TransactionHistory';
 import ProfileSettings from './ProfileSettings';
 import AdminLogin from './AdminLogin';
 import UserLayout from './UserLayout';
 import LandingPage from './LandingPage';
-import MaintenanceWrapper from './MaintenanceWrapper';
-import Swap from './Swap';
-import './App.css';
 import Referral from './Referral';
-import { ThemeProvider } from './ThemeContext';
-
-
+import { ThemeProvider, useTheme } from './ThemeContext';
+import './App.css';
 
 const ProtectedRoute = ({ children }) => {
   const user = localStorage.getItem('user');
@@ -40,151 +37,152 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
-function App() {
+// Inner App component that uses theme
+const AppRoutes = () => {
+  const { theme } = useTheme();
+
   return (
-  <ThemeProvider>
     <Router>
-      <Routes>
-        {/* Landing Page - Default route */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
-        
-        {/* User Routes with Hamburger Menu */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <MaintenanceWrapper>
+      <div key={theme}>
+        <Routes>
+          {/* Landing Page - Default route */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+
+          {/* User Routes with Hamburger Menu */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
                 <UserLayout>
                   <Dashboard />
                 </UserLayout>
-              </MaintenanceWrapper>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/deposit"
-          element={
-            <ProtectedRoute>
-              <MaintenanceWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/deposit"
+            element={
+              <ProtectedRoute>
                 <UserLayout>
                   <Deposit />
                 </UserLayout>
-              </MaintenanceWrapper>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/withdraw"
-          element={
-            <ProtectedRoute>
-              <MaintenanceWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/withdraw"
+            element={
+              <ProtectedRoute>
                 <UserLayout>
                   <Withdraw />
                 </UserLayout>
-              </MaintenanceWrapper>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/transactions"
-          element={
-            <ProtectedRoute>
-              <MaintenanceWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/swap"
+            element={
+              <ProtectedRoute>
+                <UserLayout>
+                  <Swap />
+                </UserLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute>
                 <UserLayout>
                   <TransactionHistory />
                 </UserLayout>
-              </MaintenanceWrapper>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <MaintenanceWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
                 <UserLayout>
                   <ProfileSettings />
                 </UserLayout>
-              </MaintenanceWrapper>
-            </ProtectedRoute>
-          }
-        />
-<Route
-  path="/referral"
-  element={
-    <ProtectedRoute>
-      <UserLayout>
-        <Referral />
-      </UserLayout>
-    </ProtectedRoute>
-  }
-/>
-        
-        {/* Admin Routes (no maintenance wrapper - admins can still access) */}
-        <Route
-          path="/admin"
-          element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/deposits"
-          element={
-            <AdminRoute>
-              <AdminDeposits />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/withdrawals"
-          element={
-            <AdminRoute>
-              <AdminWithdrawals />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/pins"
-          element={
-            <AdminRoute>
-              <AdminPinManagement />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/kyc"
-          element={
-            <AdminRoute>
-              <AdminKYC />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/settings"
-          element={
-            <AdminRoute>
-              <AdminSettings />
-            </AdminRoute>
-          }
-        />
-<Route
-  path="/swap"
-  element={
-    <ProtectedRoute>
-      <UserLayout>
-        <Swap />
-      </UserLayout>
-    </ProtectedRoute>
-  }
-/>
-      </Routes>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/referral"
+            element={
+              <ProtectedRoute>
+                <UserLayout>
+                  <Referral />
+                </UserLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/deposits"
+            element={
+              <AdminRoute>
+                <AdminDeposits />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/withdrawals"
+            element={
+              <AdminRoute>
+                <AdminWithdrawals />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/pins"
+            element={
+              <AdminRoute>
+                <AdminPinManagement />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/kyc"
+            element={
+              <AdminRoute>
+                <AdminKYC />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <AdminRoute>
+                <AdminSettings />
+              </AdminRoute>
+            }
+          />
+        </Routes>
+      </div>
     </Router>
- </ThemeProvider>
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppRoutes />
+    </ThemeProvider>
   );
 }
 
