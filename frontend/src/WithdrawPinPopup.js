@@ -1,19 +1,30 @@
 import React, { useState } from 'react';
 import api from './services/api';
+import { brand } from './brand';
+import {
+  KeyRound,
+  X,
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
+  ShieldCheck,
+  Mail,
+  Phone,
+  Lock,
+} from './icons';
 
-const WithdrawPinPopup = ({ 
-  isOpen, 
-  onClose, 
-  onSuccess, 
-  amount, 
-  currency, 
+const WithdrawPinPopup = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  amount,
+  currency,
   hasPin = false,
-  userEmail = ''
+  userEmail = '',
 }) => {
   const [pin, setPin] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showSupport, setShowSupport] = useState(false);
 
   if (!isOpen) return null;
 
@@ -62,33 +73,54 @@ const WithdrawPinPopup = ({
   };
 
   const handleContactSupport = () => {
-    // Open email client with support email
     window.location.href = `mailto:support@bloomhaven.com?subject=Withdrawal PIN Request&body=Hello Support,%0D%0A%0D%0AI would like to request my withdrawal PIN.%0D%0A%0D%0AMy email: ${userEmail}%0D%0A%0D%0AThank you!`;
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-fadeIn">
+      <div
+        className="rounded-2xl shadow-2xl max-w-md w-full p-8 relative"
+        style={{ background: brand.colors.surface }}
+      >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition text-2xl"
+          className="absolute top-4 right-4 p-1 rounded-lg transition hover:bg-opacity-10"
+          style={{ color: brand.colors.textLight }}
+          aria-label="Close"
         >
-          ✕
+          <X size={20} />
         </button>
 
         <div className="text-center mb-6">
-          <div className="text-5xl mb-4">{hasPin ? '🔐' : '📌'}</div>
-          <h2 className="text-2xl font-bold text-gray-800">
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ background: brand.colors.creamSoft }}
+          >
+            {hasPin ? (
+              <KeyRound size={40} strokeWidth={2} style={{ color: brand.colors.primary }} />
+            ) : (
+              <ShieldCheck size={40} strokeWidth={2} style={{ color: brand.colors.primary }} />
+            )}
+          </div>
+          <h2
+            className="text-2xl font-bold"
+            style={{ color: brand.colors.text }}
+          >
             {hasPin ? 'Withdrawal PIN Required' : 'No PIN Issued'}
           </h2>
-          <p className="text-gray-600 mt-2">
-            {hasPin 
+          <p className="mt-2" style={{ color: brand.colors.textLight }}>
+            {hasPin
               ? 'Enter your 4-digit PIN to confirm this withdrawal'
-              : 'You need a withdrawal PIN to make your first withdrawal'
-            }
+              : 'You need a withdrawal PIN to make your first withdrawal'}
           </p>
           {amount && currency && (
-            <p className="text-sm text-gray-500 mt-1 font-medium">
+            <p
+              className="text-sm mt-2 font-semibold px-3 py-1 rounded-full inline-block"
+              style={{
+                background: brand.colors.creamSoft,
+                color: brand.colors.primary,
+              }}
+            >
               Amount: {amount} {currency}
             </p>
           )}
@@ -97,25 +129,42 @@ const WithdrawPinPopup = ({
         {!hasPin ? (
           // No PIN - Show Contact Support
           <div className="space-y-4">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
-              <p className="text-yellow-800">
+            <div
+              className="rounded-xl p-4 text-center"
+              style={{
+                background: '#FEF3C7',
+                border: '1px solid #FCD34D',
+              }}
+            >
+              <AlertTriangle
+                size={24}
+                strokeWidth={2}
+                style={{ color: brand.colors.warning, margin: '0 auto 8px' }}
+              />
+              <p className="font-medium" style={{ color: '#92400E' }}>
                 You don't have a withdrawal PIN yet.
               </p>
-              <p className="text-sm text-yellow-600 mt-1">
+              <p className="text-sm mt-1" style={{ color: '#B45309' }}>
                 Contact support to get your 4-digit PIN issued.
               </p>
             </div>
-            
+
             <button
               onClick={handleContactSupport}
-              className="w-full py-3 rounded-xl text-white font-semibold bg-blue-500 hover:bg-blue-600 transition"
+              className="w-full py-3 rounded-xl text-white font-semibold transition hover:opacity-90 flex items-center justify-center gap-2"
+              style={{ background: '#3b82f6' }}
             >
-              📧 Contact Support
+              <Mail size={18} />
+              Contact Support
             </button>
-            
+
             <button
               onClick={onClose}
-              className="w-full py-3 rounded-xl text-gray-600 font-semibold border-2 border-gray-200 hover:bg-gray-50 transition"
+              className="w-full py-3 rounded-xl font-semibold transition hover:bg-opacity-10 flex items-center justify-center gap-2"
+              style={{
+                color: brand.colors.text,
+                border: `2px solid ${brand.colors.primarySoft}`,
+              }}
             >
               Cancel Withdrawal
             </button>
@@ -133,7 +182,20 @@ const WithdrawPinPopup = ({
                   value={pin[index]}
                   onChange={(e) => handlePinChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-16 h-16 text-center text-2xl font-bold border-2 border-gray-300 rounded-xl focus:border-rose-500 focus:ring-2 focus:ring-rose-500 focus:outline-none transition"
+                  className="w-16 h-16 text-center text-2xl font-bold rounded-xl focus:outline-none transition"
+                  style={{
+                    border: `2px solid ${brand.colors.primarySoft}`,
+                    background: brand.colors.background,
+                    color: brand.colors.text,
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = brand.colors.primary;
+                    e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = brand.colors.primarySoft;
+                    e.target.style.boxShadow = 'none';
+                  }}
                   autoFocus={index === 0}
                   inputMode="numeric"
                 />
@@ -141,7 +203,15 @@ const WithdrawPinPopup = ({
             </div>
 
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+              <div
+                className="border-l-4 px-4 py-3 rounded-lg mb-4 flex items-center gap-2 text-sm"
+                style={{
+                  backgroundColor: '#FDF2F2',
+                  borderColor: brand.colors.error,
+                  color: brand.colors.error,
+                }}
+              >
+                <AlertTriangle size={18} />
                 {error}
               </div>
             )}
@@ -149,24 +219,37 @@ const WithdrawPinPopup = ({
             <button
               onClick={handleVerifyPin}
               disabled={loading}
-              className={`w-full py-3 rounded-xl text-white font-semibold transition ${
-                loading
-                  ? 'bg-rose-300 cursor-not-allowed'
-                  : 'bg-rose-500 hover:bg-rose-600'
-              }`}
+              className="w-full py-3 rounded-xl text-white font-semibold transition hover:opacity-90 flex items-center justify-center gap-2"
+              style={{
+                background: brand.gradients.primary,
+                opacity: loading ? 0.6 : 1,
+                cursor: loading ? 'not-allowed' : 'pointer',
+              }}
             >
-              {loading ? 'Verifying...' : '✅ Verify PIN'}
+              {loading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={18} />
+                  Verify PIN
+                </>
+              )}
             </button>
 
             <button
               onClick={onClose}
-              className="w-full mt-2 py-3 rounded-xl text-gray-500 font-semibold hover:bg-gray-50 transition"
+              className="w-full mt-2 py-3 rounded-xl font-semibold transition hover:bg-opacity-10"
+              style={{ color: brand.colors.textLight }}
             >
               Cancel
             </button>
 
             <div className="mt-4 text-center">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs flex items-center justify-center gap-1" style={{ color: brand.colors.textMuted }}>
+                <Lock size={12} />
                 Forgot PIN? Contact support to reset it.
               </p>
             </div>
