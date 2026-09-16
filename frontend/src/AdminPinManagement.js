@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from './services/api';
+import { brand } from './brand';
+import AdminLayout from './AdminLayout';
+import {
+  KeyRound,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Loader2,
+  AlertTriangle,
+  User,
+  Users,
+  ShieldCheck,
+  RefreshCw,
+} from './icons';
 
 const AdminPinManagement = () => {
-  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -21,6 +33,7 @@ const AdminPinManagement = () => {
       const response = await api.get('/users');
       setUsers(response.data);
     } catch (error) {
+      console.error('Error fetching users:', error);
       setError('Failed to fetch users');
     } finally {
       setLoading(false);
@@ -35,7 +48,6 @@ const AdminPinManagement = () => {
     newPin[index] = value;
     setPinInput(newPin);
 
-    // Auto-focus next input
     if (value && index < 3) {
       document.getElementById(`pin-input-${index + 1}`)?.focus();
     }
@@ -87,145 +99,208 @@ const AdminPinManagement = () => {
 
   const getStatusBadge = (user) => {
     if (!user.isApproved) {
-      return <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">⏳ Pending</span>;
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 flex items-center gap-1 w-fit">
+          <Clock size={10} /> Pending
+        </span>
+      );
     }
     if (user.isBlacklisted) {
-      return <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">🚫 Blacklisted</span>;
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 flex items-center gap-1 w-fit">
+          <XCircle size={10} /> Blacklisted
+        </span>
+      );
     }
     if (user.isFrozen) {
-      return <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">❄️ Frozen</span>;
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 flex items-center gap-1 w-fit">
+          <Clock size={10} /> Frozen
+        </span>
+      );
     }
-    return <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">✅ Active</span>;
+    return (
+      <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 flex items-center gap-1 w-fit">
+        <CheckCircle2 size={10} /> Active
+      </span>
+    );
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-rose-50">
-        <div className="text-center">
-          <div className="text-4xl mb-4">🔢</div>
-          <p className="text-gray-600">Loading users...</p>
-        </div>
-      </div>
-    );
-  }
+  const stats = {
+    total: users.length,
+    hasPin: users.filter((u) => u.pinIssued).length,
+    needsPin: users.filter((u) => u.isApproved && !u.pinIssued && !u.isBlacklisted && !u.isFrozen).length,
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-rose-600">🔢 PIN Management</h1>
-            <p className="text-gray-600 mt-1">Issue and manage withdrawal PINs for users</p>
-          </div>
-          <button
-            onClick={() => navigate('/admin')}
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
-          >
-            ← Back to Admin
-          </button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-2xl shadow-lg p-4">
-            <h3 className="text-gray-500 text-sm">Total Users</h3>
-            <p className="text-2xl font-bold text-gray-800">{users.length}</p>
-          </div>
-          <div className="bg-white rounded-2xl shadow-lg p-4">
-            <h3 className="text-gray-500 text-sm">Has PIN</h3>
-            <p className="text-2xl font-bold text-green-600">
-              {users.filter(u => u.pinIssued).length}
+    <AdminLayout>
+      <div className="min-h-screen py-8 px-4" style={{ background: brand.colors.background }}>
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1
+              className="text-3xl font-bold flex items-center gap-2"
+              style={{ color: brand.colors.primary }}
+            >
+              <KeyRound size={32} strokeWidth={2} />
+              PIN Management
+            </h1>
+            <p className="text-sm mt-1" style={{ color: brand.colors.textLight }}>
+              Issue and manage withdrawal PINs for users
             </p>
           </div>
-          <div className="bg-white rounded-2xl shadow-lg p-4">
-            <h3 className="text-gray-500 text-sm">Needs PIN</h3>
-            <p className="text-2xl font-bold text-yellow-600">
-              {users.filter(u => u.isApproved && !u.pinIssued && !u.isBlacklisted && !u.isFrozen).length}
-            </p>
-          </div>
-        </div>
 
-        {/* Messages */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {error}
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div
+              className="rounded-2xl shadow-lg p-4"
+              style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}
+            >
+              <h3 className="text-sm flex items-center gap-1.5 mb-2" style={{ color: brand.colors.textMuted }}>
+                <Users size={16} strokeWidth={1.8} />
+                Total Users
+              </h3>
+              <p className="text-2xl font-bold" style={{ color: brand.colors.text }}>{stats.total}</p>
+            </div>
+            <div
+              className="rounded-2xl shadow-lg p-4"
+              style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}
+            >
+              <h3 className="text-sm flex items-center gap-1.5 mb-2" style={{ color: brand.colors.textMuted }}>
+                <CheckCircle2 size={16} strokeWidth={1.8} />
+                Has PIN
+              </h3>
+              <p className="text-2xl font-bold text-green-600">{stats.hasPin}</p>
+            </div>
+            <div
+              className="rounded-2xl shadow-lg p-4"
+              style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}
+            >
+              <h3 className="text-sm flex items-center gap-1.5 mb-2" style={{ color: brand.colors.textMuted }}>
+                <Clock size={16} strokeWidth={1.8} />
+                Needs PIN
+              </h3>
+              <p className="text-2xl font-bold text-yellow-600">{stats.needsPin}</p>
+            </div>
           </div>
-        )}
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
-            {success}
-          </div>
-        )}
 
-        {/* Users Table */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PIN Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {users.map((user) => (
-                  <tr key={user._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 bg-rose-100 rounded-full flex items-center justify-center">
-                          <span className="text-rose-600 font-bold">
-                            {user.fullName?.charAt(0) || '?'}
-                          </span>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{user.fullName}</div>
-                          <div className="text-sm text-gray-500">{user.role}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{user.email}</td>
-                    <td className="px-6 py-4">{getStatusBadge(user)}</td>
-                    <td className="px-6 py-4">
-                      {user.pinIssued ? (
-                        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                          ✅ Issued
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-                          ⏳ Not Issued
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      {user.isApproved && !user.isBlacklisted && !user.isFrozen ? (
-                        user.pinIssued ? (
-                          <button
-                            onClick={() => openPinModal(user)}
-                            className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition"
-                          >
-                            Reset PIN
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => openPinModal(user)}
-                            className="px-3 py-1 bg-rose-500 text-white text-xs rounded hover:bg-rose-600 transition"
-                          >
-                            Issue PIN
-                          </button>
-                        )
-                      ) : (
-                        <span className="text-xs text-gray-400">Not Available</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* Messages */}
+          {error && (
+            <div
+              className="border-l-4 px-4 py-3 rounded-lg mb-4 flex items-center gap-3"
+              style={{ backgroundColor: '#FDF2F2', borderColor: brand.colors.error, color: brand.colors.error }}
+            >
+              <AlertTriangle size={20} />
+              {error}
+            </div>
+          )}
+          {success && (
+            <div
+              className="border-l-4 px-4 py-3 rounded-lg mb-4 flex items-center gap-3"
+              style={{ backgroundColor: '#F0FDF4', borderColor: brand.colors.success, color: brand.colors.success }}
+            >
+              <CheckCircle2 size={20} />
+              {success}
+            </div>
+          )}
+
+          {/* Users Table */}
+          {loading ? (
+            <div
+              className="rounded-2xl shadow-lg p-12 text-center"
+              style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}
+            >
+              <Loader2 size={40} className="animate-spin mx-auto mb-4" style={{ color: brand.colors.primary }} />
+              <p style={{ color: brand.colors.textLight }}>Loading users...</p>
+            </div>
+          ) : (
+            <div
+              className="rounded-2xl shadow-lg overflow-hidden"
+              style={{ background: brand.colors.surface, border: `1px solid ${brand.colors.primarySoft}` }}
+            >
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead style={{ background: brand.colors.surfaceAlt }}>
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>User</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>PIN Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: brand.colors.textMuted }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr
+                        key={user._id}
+                        className="transition hover:bg-opacity-50"
+                        style={{ borderTop: `1px solid ${brand.colors.primarySoft}` }}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0"
+                              style={{ background: brand.colors.creamSoft, color: brand.colors.primary }}
+                            >
+                              {user.fullName?.charAt(0) || <User size={18} />}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium" style={{ color: brand.colors.text }}>
+                                {user.fullName}
+                              </p>
+                              <p className="text-xs" style={{ color: brand.colors.textMuted }}>
+                                {user.role}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm" style={{ color: brand.colors.textLight }}>
+                          {user.email}
+                        </td>
+                        <td className="px-6 py-4">{getStatusBadge(user)}</td>
+                        <td className="px-6 py-4">
+                          {user.pinIssued ? (
+                            <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 flex items-center gap-1 w-fit">
+                              <CheckCircle2 size={10} /> Issued
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 flex items-center gap-1 w-fit">
+                              <Clock size={10} /> Not Issued
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {user.isApproved && !user.isBlacklisted && !user.isFrozen ? (
+                            user.pinIssued ? (
+                              <button
+                                onClick={() => openPinModal(user)}
+                                className="px-3 py-1 rounded text-white text-xs font-medium transition hover:opacity-90 flex items-center gap-1"
+                                style={{ background: '#3b82f6' }}
+                              >
+                                <RefreshCw size={12} />
+                                Reset PIN
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => openPinModal(user)}
+                                className="px-3 py-1 rounded text-white text-xs font-medium transition hover:opacity-90 flex items-center gap-1"
+                                style={{ background: brand.colors.primary }}
+                              >
+                                <KeyRound size={12} />
+                                Issue PIN
+                              </button>
+                            )
+                          ) : (
+                            <span className="text-xs" style={{ color: brand.colors.textMuted }}>Not Available</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -237,23 +312,29 @@ const AdminPinManagement = () => {
               onClick={closePinModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
             >
-              ✕
+              <XCircle size={20} />
             </button>
 
             <div className="text-center mb-6">
-              <div className="text-5xl mb-4">🔑</div>
-              <h2 className="text-2xl font-bold text-gray-800">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                style={{ background: brand.colors.creamSoft }}
+              >
+                <KeyRound size={32} strokeWidth={2} style={{ color: brand.colors.primary }} />
+              </div>
+              <h2 className="text-2xl font-bold" style={{ color: brand.colors.text }}>
                 {selectedUser.pinIssued ? 'Reset PIN' : 'Issue PIN'}
               </h2>
-              <p className="text-gray-600 mt-2">
+              <p className="mt-2" style={{ color: brand.colors.textLight }}>
                 {selectedUser.pinIssued
                   ? `Reset PIN for ${selectedUser.fullName}`
                   : `Issue new 4-digit PIN for ${selectedUser.fullName}`}
               </p>
-              <p className="text-sm text-gray-500 mt-1">{selectedUser.email}</p>
+              <p className="text-sm mt-1" style={{ color: brand.colors.textMuted }}>
+                {selectedUser.email}
+              </p>
             </div>
 
-            {/* PIN Input */}
             <div className="flex justify-center gap-3 mb-6">
               {[0, 1, 2, 3].map((index) => (
                 <input
@@ -264,35 +345,53 @@ const AdminPinManagement = () => {
                   value={pinInput[index]}
                   onChange={(e) => handlePinChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-16 h-16 text-center text-2xl font-bold border-2 border-gray-300 rounded-xl focus:border-rose-500 focus:ring-2 focus:ring-rose-500 focus:outline-none transition"
+                  className="w-16 h-16 text-center text-2xl font-bold rounded-xl focus:outline-none transition"
+                  style={{
+                    border: `2px solid ${brand.colors.primarySoft}`,
+                    background: brand.colors.background,
+                    color: brand.colors.text,
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = brand.colors.primary;
+                    e.target.style.boxShadow = `0 0 0 4px ${brand.colors.primarySoft}`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = brand.colors.primarySoft;
+                    e.target.style.boxShadow = 'none';
+                  }}
                   autoFocus={index === 0}
                   inputMode="numeric"
                 />
               ))}
             </div>
 
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-                {error}
-              </div>
-            )}
-
             <button
               onClick={handleIssuePin}
-              className="w-full py-3 rounded-xl text-white font-semibold bg-rose-500 hover:bg-rose-600 transition"
+              className="w-full py-3 rounded-xl text-white font-semibold transition hover:opacity-90 flex items-center justify-center gap-2"
+              style={{ background: brand.gradients.primary }}
             >
-              {selectedUser.pinIssued ? '🔄 Reset PIN' : '📌 Issue PIN'}
+              {selectedUser.pinIssued ? (
+                <>
+                  <RefreshCw size={18} />
+                  Reset PIN
+                </>
+              ) : (
+                <>
+                  <KeyRound size={18} />
+                  Issue PIN
+                </>
+              )}
             </button>
 
             <div className="mt-4 text-center">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm" style={{ color: brand.colors.textMuted }}>
                 PIN will be sent to the user
               </p>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 
