@@ -67,7 +67,6 @@ import {
 LineChart,
   BarChart3,
 Share2,
-Mail,
 Check,
 } from 'lucide-react';
 
@@ -137,7 +136,6 @@ export {
 LineChart,
   BarChart3,
 Share2,
-Mail,
 Check,
 };
 
