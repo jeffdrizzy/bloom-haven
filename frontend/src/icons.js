@@ -67,6 +67,9 @@ import {
   LineChart,
   BarChart3,
   Share2,
+Camera,
+  Save,
+  FileText,
 } from 'lucide-react';
 
 export {
@@ -135,6 +138,9 @@ export {
   LineChart,
   BarChart3,
   Share2,
+Camera,
+  Save,
+  FileText,
 };
 
 // Crypto currency icon map
