@@ -12,10 +12,10 @@ const ThemeToggle = () => {
       className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition w-full"
       style={{
         background: 'transparent',
-        color: brand.colors.text,
+        color: isDark ? '#F5F5F5' : brand.colors.text,
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = isDark ? '#2a2a35' : '#F8F9FA';
+        e.currentTarget.style.background = isDark ? 'rgba(255, 193, 7, 0.1)' : '#F8F9FA';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = 'transparent';
@@ -24,7 +24,7 @@ const ThemeToggle = () => {
     >
       {isDark ? (
         <>
-          <Sun size={22} strokeWidth={1.8} />
+          <Sun size={22} strokeWidth={1.8} style={{ color: '#FFC107' }} />
           <span className="text-lg font-medium">Light Mode</span>
         </>
       ) : (

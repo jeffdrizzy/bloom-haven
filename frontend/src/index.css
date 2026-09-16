@@ -321,117 +321,276 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* ===== DARK MODE ===== */
+/* ===== DARK MODE — PREMIUM BLACK & GOLD ===== */
+
+:root {
+  --dm-bg: #0A0A0A;
+  --dm-surface: #141414;
+  --dm-surface-alt: #1C1C1C;
+  --dm-border: #2A2A2A;
+  --dm-text: #F5F5F5;
+  --dm-text-light: #A3A3A3;
+  --dm-text-muted: #6B6B6B;
+  --dm-gold: #FFC107;
+  --dm-gold-bright: #FFD54F;
+  --dm-gold-dark: #FFA000;
+  --dm-gold-soft: rgba(255, 193, 7, 0.12);
+  --dm-gold-glow: rgba(255, 193, 7, 0.25);
+}
 
 /* Smooth transition */
-body, .landing-page, [data-theme] {
+body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Dark mode body */
 body.dark-mode {
-  background-color: #12121a !important;
-  color: #e5e5e5 !important;
+  background-color: var(--dm-bg) !important;
+  color: var(--dm-text) !important;
 }
 
-/* Dark mode background overrides */
+/* ===== BACKGROUND OVERRIDES ===== */
+
+/* Primary backgrounds (main app bg) */
 body.dark-mode [style*="background: #FAF9F6"],
-body.dark-mode [style*="background: rgb(250, 249, 246)"] {
-  background-color: #1a1a24 !important;
+body.dark-mode [style*="background: rgb(250, 249, 246)"],
+body.dark-mode [style*="background: #FAFAF8"] {
+  background-color: var(--dm-bg) !important;
 }
 
+/* Surface / cards (white) */
 body.dark-mode [style*="background: #FFFFFF"],
 body.dark-mode [style*="background: white"],
-body.dark-mode [style*="background: rgb(255, 255, 255)"] {
-  background-color: #1e1e2a !important;
+body.dark-mode [style*="background: rgb(255, 255, 255)"],
+body.dark-mode [style*="background: #FFF"],
+body.dark-mode .bg-white {
+  background-color: var(--dm-surface) !important;
 }
 
+/* Cream / soft backgrounds */
 body.dark-mode [style*="background: #F8F1E6"],
-body.dark-mode [style*="background: #FCF4E7"] {
-  background-color: #252533 !important;
-}
-
+body.dark-mode [style*="background: #FCF4E7"],
 body.dark-mode [style*="background: #F8F9FA"],
 body.dark-mode [style*="background: #F7F5F0"],
-body.dark-mode [style*="background: #F8FAFB"] {
-  background-color: #252533 !important;
+body.dark-mode [style*="background: #F8FAFB"],
+body.dark-mode [style*="background: rgb(248, 241, 230)"],
+body.dark-mode [style*="background: rgb(252, 244, 231)"] {
+  background-color: var(--dm-surface-alt) !important;
 }
 
-/* Dark mode text overrides */
+/* Gray-50 / gray-100 utility classes */
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100 {
+  background-color: var(--dm-surface-alt) !important;
+}
+
+/* ===== TEXT OVERRIDES ===== */
+
+/* Primary text */
 body.dark-mode [style*="color: #3D4A3A"],
-body.dark-mode [style*="color: rgb(61, 74, 58)"] {
-  color: #e5e5e5 !important;
+body.dark-mode [style*="color: rgb(61, 74, 58)"],
+body.dark-mode [style*="color: #2C3E50"],
+body.dark-mode .text-gray-800,
+body.dark-mode .text-gray-900 {
+  color: var(--dm-text) !important;
 }
 
+/* Secondary / light text */
 body.dark-mode [style*="color: #6B7568"],
-body.dark-mode [style*="color: rgb(107, 117, 104)"] {
-  color: #b8b8b8 !important;
+body.dark-mode [style*="color: rgb(107, 117, 104)"],
+body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-700 {
+  color: var(--dm-text-light) !important;
 }
 
+/* Muted text */
 body.dark-mode [style*="color: #8A9385"],
-body.dark-mode [style*="color: rgb(138, 147, 133)"] {
-  color: #9a9a9a !important;
+body.dark-mode [style*="color: rgb(138, 147, 133)"],
+body.dark-mode .text-gray-400,
+body.dark-mode .text-gray-500 {
+  color: var(--dm-text-muted) !important;
 }
 
-body.dark-mode [style*="color: #2C3E50"] {
-  color: #e5e5e5 !important;
+/* ===== BRAND COLOR → GOLD IN DARK MODE ===== */
+
+/* Sage green text becomes gold */
+body.dark-mode [style*="color: #8A9A7F"],
+body.dark-mode [style*="color: rgb(138, 154, 127)"] {
+  color: var(--dm-gold) !important;
 }
 
-/* Dark mode borders */
+body.dark-mode [style*="color: #6F7F65"],
+body.dark-mode [style*="color: #A7B69F"],
+body.dark-mode [style*="color: #4CAF50"] {
+  color: var(--dm-gold-bright) !important;
+}
+
+/* ===== BORDER OVERRIDES ===== */
+
 body.dark-mode [style*="border: 1px solid #C5D0BE"],
 body.dark-mode [style*="border: 2px solid #C5D0BE"],
-body.dark-mode [style*="border-color: #C5D0BE"] {
-  border-color: #2e2e3e !important;
-}
-
+body.dark-mode [style*="border-color: #C5D0BE"],
+body.dark-mode [style*="borderColor: #C5D0BE"],
+body.dark-mode [style*="border-color: rgb(197, 208, 190)"],
 body.dark-mode [style*="border: 1px solid #F1F3F5"],
 body.dark-mode [style*="border: 1px solid #E9ECEF"] {
-  border-color: #2e2e3e !important;
+  border-color: var(--dm-border) !important;
 }
 
-/* Dark mode inputs */
+/* ===== INPUTS ===== */
+
 body.dark-mode input,
 body.dark-mode textarea,
 body.dark-mode select {
-  background-color: #252533 !important;
-  color: #e5e5e5 !important;
-  border-color: #2e2e3e !important;
+  background-color: var(--dm-surface-alt) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
 }
 
 body.dark-mode input::placeholder,
 body.dark-mode textarea::placeholder {
-  color: #7a7a7a !important;
+  color: var(--dm-text-muted) !important;
 }
 
-/* Dark mode cards */
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus {
+  border-color: var(--dm-gold) !important;
+  box-shadow: 0 0 0 4px var(--dm-gold-soft) !important;
+}
+
+/* ===== BUTTONS ===== */
+
+/* Primary button gradient becomes gold gradient */
+body.dark-mode button[style*="linear-gradient(135deg, #A7B69F 0%, #8A9A7F 100%)"],
+body.dark-mode button[style*="linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)"],
+body.dark-mode .btn-primary {
+  background: linear-gradient(135deg, var(--dm-gold-bright) 0%, var(--dm-gold-dark) 100%) !important;
+  color: #0A0A0A !important;
+  box-shadow: 0 4px 14px var(--dm-gold-glow) !important;
+}
+
+/* ===== CARDS / ROUNDED CONTAINERS ===== */
+
 body.dark-mode .rounded-2xl,
-body.dark-mode .rounded-xl {
-  background-color: #1e1e2a;
+body.dark-mode .rounded-xl,
+body.dark-mode .rounded-lg {
+  border-color: var(--dm-border);
 }
 
-/* Dark mode sidebar/modal */
-body.dark-mode [style*="background: #FAF9F6"],
-body.dark-mode [style*="background: rgb(250, 249, 246)"] {
-  background-color: #1a1a24 !important;
+/* ===== SIDEBAR / MODAL ===== */
+
+body.dark-mode [style*="background: #FAF9F6"] {
+  background-color: var(--dm-surface) !important;
 }
 
-/* Landing page dark mode */
+/* ===== HOVER STATES ===== */
+
+body.dark-mode [onMouseEnter]:hover {
+  background-color: var(--dm-surface-alt) !important;
+}
+
+/* ===== GOLD ACCENT GLOW ===== */
+
+body.dark-mode .shadow-lg,
+body.dark-mode .shadow-xl,
+body.dark-mode .shadow-2xl {
+  box-shadow: 0 4px 20px rgba(255, 193, 7, 0.08), 0 0 0 1px var(--dm-border) !important;
+}
+
+/* ===== STATUS BADGES ===== */
+
+body.dark-mode .bg-green-100 {
+  background-color: rgba(76, 175, 80, 0.15) !important;
+  color: #81C784 !important;
+}
+
+body.dark-mode .bg-yellow-100 {
+  background-color: rgba(255, 193, 7, 0.15) !important;
+  color: var(--dm-gold-bright) !important;
+}
+
+body.dark-mode .bg-red-100 {
+  background-color: rgba(239, 83, 80, 0.15) !important;
+  color: #EF5350 !important;
+}
+
+body.dark-mode .bg-blue-100 {
+  background-color: rgba(33, 150, 243, 0.15) !important;
+  color: #64B5F6 !important;
+}
+
+body.dark-mode .text-green-600,
+body.dark-mode .text-green-500 {
+  color: #81C784 !important;
+}
+
+body.dark-mode .text-yellow-600 {
+  color: var(--dm-gold-bright) !important;
+}
+
+body.dark-mode .text-red-600,
+body.dark-mode .text-red-500 {
+  color: #EF5350 !important;
+}
+
+/* ===== SCROLLBAR ===== */
+
+body.dark-mode ::-webkit-scrollbar-track {
+  background: var(--dm-bg);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+  background: var(--dm-border);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: var(--dm-gold-dark);
+}
+
+/* ===== SELECTION ===== */
+
+body.dark-mode ::selection {
+  background: var(--dm-gold);
+  color: #0A0A0A;
+}
+
+/* ===== LANDING PAGE ===== */
+
 body.dark-mode .landing-page {
-  background: #12121a !important;
-  color: #e5e5e5 !important;
+  background: var(--dm-bg) !important;
+  color: var(--dm-text) !important;
 }
 
 body.dark-mode .navbar-scrolled {
-  background: rgba(18, 18, 26, 0.95) !important;
+  background: rgba(10, 10, 10, 0.95) !important;
+  border-bottom: 1px solid var(--dm-border) !important;
 }
 
 body.dark-mode .navbar-link,
 body.dark-mode .logo-text {
-  color: #e5e5e5 !important;
+  color: var(--dm-text) !important;
+}
+
+body.dark-mode .navbar-link:hover {
+  color: var(--dm-gold) !important;
 }
 
 body.dark-mode .hero {
-  background: linear-gradient(180deg, #1a1a24 0%, #12121a 100%) !important;
+  background: linear-gradient(180deg, #141414 0%, #0A0A0A 100%) !important;
+}
+
+body.dark-mode .hero-blob {
+  opacity: 0.15;
+}
+
+body.dark-mode .hero-card {
+  background: rgba(20, 20, 20, 0.95) !important;
+  border: 1px solid var(--dm-border) !important;
+}
+
+body.dark-mode .hero-card-header {
+  border-bottom: 1px solid var(--dm-border) !important;
 }
 
 body.dark-mode .feature-card,
@@ -439,71 +598,167 @@ body.dark-mode .step-card,
 body.dark-mode .testimonial-card,
 body.dark-mode .crypto-list,
 body.dark-mode .crypto-chart-card {
-  background: #1e1e2a !important;
-  border-color: #2e2e3e !important;
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
 }
 
-body.dark-mode .hero-card {
-  background: rgba(30, 30, 42, 0.95) !important;
+body.dark-mode .feature-card:hover,
+body.dark-mode .crypto-list-item:hover {
+  border-color: var(--dm-gold) !important;
+  box-shadow: 0 8px 30px var(--dm-gold-soft) !important;
 }
 
 body.dark-mode .crypto-item {
-  background: #252533 !important;
+  background: var(--dm-surface-alt) !important;
+}
+
+body.dark-mode .crypto-list-item.active {
+  background: var(--dm-gold-soft) !important;
+  border-left: 3px solid var(--dm-gold);
 }
 
 body.dark-mode .stats {
-  background: #1a1a24 !important;
+  background: var(--dm-surface) !important;
 }
 
 body.dark-mode .how-it-works,
 body.dark-mode .testimonials {
-  background: #1a1a24 !important;
+  background: var(--dm-surface-alt) !important;
 }
 
 body.dark-mode .faq-item {
-  border-color: #2e2e3e !important;
+  border-color: var(--dm-border) !important;
 }
 
 body.dark-mode .faq-question {
-  color: #e5e5e5 !important;
+  color: var(--dm-text) !important;
+}
+
+body.dark-mode .faq-question:hover {
+  color: var(--dm-gold) !important;
 }
 
 body.dark-mode .faq-answer p {
-  color: #b8b8b8 !important;
+  color: var(--dm-text-light) !important;
 }
 
 body.dark-mode .section-title,
-body.dark-mode .section-subtitle,
 body.dark-mode .hero-title {
-  color: #e5e5e5 !important;
+  color: var(--dm-text) !important;
 }
 
+body.dark-mode .section-subtitle,
 body.dark-mode .hero-subtitle,
 body.dark-mode .balance-label,
 body.dark-mode .crypto-name {
-  color: #b8b8b8 !important;
+  color: var(--dm-text-light) !important;
 }
 
 body.dark-mode .balance-amount,
 body.dark-mode .crypto-value {
-  color: #e5e5e5 !important;
+  color: var(--dm-text) !important;
 }
 
-body.dark-mode .mobile-menu {
-  background: #1e1e2a !important;
+body.dark-mode .section-tag {
+  background: var(--dm-gold-soft) !important;
+  color: var(--dm-gold) !important;
 }
 
-body.dark-mode .mobile-link {
-  color: #e5e5e5 !important;
-  border-color: #2e2e3e !important;
+body.dark-mode .step-icon {
+  color: var(--dm-gold) !important;
 }
 
-body.dark-mode .btn-outline {
-  color: #e5e5e5 !important;
-  border-color: #2e2e3e !important;
+body.dark-mode .cta-card {
+  background: linear-gradient(135deg, var(--dm-gold-bright) 0%, var(--dm-gold-dark) 100%) !important;
 }
 
-/* Smooth transition on specific components */
+body.dark-mode .cta-title,
+body.dark-mode .cta-subtitle,
+body.dark-mode .cta-benefits,
+body.dark-mode .cta-flower {
+  color: #0A0A0A !important;
+}
+
+body.dark-mode .cta-benefits span {
+  color: #0A0A0A !important;
+}
+
+body.dark-mode .btn-white {
+  background: #0A0A0A !important;
+  color: var(--dm-gold) !important;
+}
+
+body.dark-mode .btn-outline-white {
+  border-color: rgba(10, 10, 10, 0.3) !important;
+  color: #0A0A0A !important;
+}
+
+body.dark-mode .footer {
+  background: #050505 !important;
+  border-top: 1px solid var(--dm-border);
+}
+
+body.dark-mode .footer-logo .logo-text {
+  background: linear-gradient(135deg, var(--dm-gold-bright), var(--dm-gold-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body.dark-mode .footer-links a:hover {
+  color: var(--dm-gold) !important;
+}
+
+body.dark-mode .footer-bottom {
+  border-color: var(--dm-border) !important;
+}
+
+/* ===== AUTH PAGES ===== */
+
+body.dark-mode [style*="background: #FDF2F2"] {
+  background-color: rgba(239, 83, 80, 0.1) !important;
+  border-color: #EF5350 !important;
+}
+
+body.dark-mode [style*="background: #F0FDF4"] {
+  background-color: rgba(76, 175, 80, 0.1) !important;
+  border-color: #81C784 !important;
+}
+
+body.dark-mode [style*="background: #FEF3C7"] {
+  background-color: rgba(255, 193, 7, 0.1) !important;
+  border-color: var(--dm-gold) !important;
+}
+
+/* ===== SMOOTH TRANSITIONS ===== */
+
 body.dark-mode * {
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+/* ===== GOLD GRADIENT TEXT IN DARK MODE ===== */
+
+body.dark-mode .gradient-text {
+  background: linear-gradient(135deg, var(--dm-gold-bright) 0%, var(--dm-gold-dark) 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+body.dark-mode .hero-brand-heading {
+  background: linear-gradient(135deg, var(--dm-gold-bright) 0%, var(--dm-gold-dark) 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+/* ===== ICON COLOR IN DARK MODE ===== */
+
+body.dark-mode svg {
+  transition: color 0.25s ease;
+}
+
+/* Icons that were sage green → gold in dark */
+body.dark-mode [style*="color: #8A9A7F"] svg,
+body.dark-mode svg[style*="color: #8A9A7F"] {
+  color: var(--dm-gold) !important;
 }
