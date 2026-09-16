@@ -53,6 +53,7 @@ const AdminLayout = ({ children }) => {
           backdropFilter: 'blur(12px)',
           borderBottom: `1px solid ${brand.colors.primarySoft}`,
         }}
+        data-header
       >
         {/* Logo */}
         <div className="flex items-center gap-2">

@@ -762,3 +762,29 @@ body.dark-mode [style*="color: #8A9A7F"] svg,
 body.dark-mode svg[style*="color: #8A9A7F"] {
   color: var(--dm-gold) !important;
 }
+/* ===== DARK MODE HEADER FIX ===== */
+body.dark-mode [data-header] {
+  background: rgba(10, 10, 10, 0.95) !important;
+  border-bottom: 1px solid #2A2A2A !important;
+}
+
+body.dark-mode [data-header] span {
+  color: #F5F5F5;
+}
+
+body.dark-mode [data-header] .text-\[var\(--dm-text-muted\)\],
+body.dark-mode [data-header] small {
+  color: #A3A3A3 !important;
+}
+
+/* Logo flower stays pink, but text turns gold in dark */
+body.dark-mode [data-header] span[style*="color: #8A9A7F"],
+body.dark-mode [data-header] span[style*="rgb(138, 154, 127)"] {
+  color: #FFC107 !important;
+}
+
+/* Subtitle tagline */
+body.dark-mode [data-header] span[style*="color: #8A9385"],
+body.dark-mode [data-header] span[style*="rgb(138, 147, 133)"] {
+  color: #A3A3A3 !important;
+}

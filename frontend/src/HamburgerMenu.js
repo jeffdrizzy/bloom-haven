@@ -49,14 +49,15 @@ const HamburgerMenu = () => {
 
   return (
     <>
-      {/* Fixed Header */}
+       {/* Fixed Header */}
       <div
         className="fixed top-0 left-0 right-0 z-40 px-4 py-3 flex justify-between items-center"
         style={{
-          background: 'rgba(250, 249, 246, 0.92)',
+          background: 'rgba(250, 249, 246, 0.95)',
           backdropFilter: 'blur(12px)',
           borderBottom: `1px solid ${brand.colors.primarySoft}`,
         }}
+        data-header
       >
         {/* Logo */}
         <div className="flex items-center gap-2">
